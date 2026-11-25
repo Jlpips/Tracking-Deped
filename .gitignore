@@ -9,3 +9,5 @@ supabase/.branches/
 *.xlsm
 .superpowers/
 .worktrees/
+*.log
+*.local
