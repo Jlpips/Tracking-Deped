@@ -73,6 +73,8 @@ export default function UsersPage() {
       supabase
         .from('profiles')
         .select('user_id, username, full_name, role, school_id, must_change_password, disabled, school:schools(id, name)')
+        // RLS still returns the caller's own row, so a signed-in superadmin would see themselves.
+        .neq('role', 'superadmin')
         .order('full_name'),
     ).then(
       ({ data, error }) => {

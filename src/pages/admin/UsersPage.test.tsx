@@ -232,6 +232,38 @@ describe('UsersPage', () => {
     await waitFor(() => expect(mockCall).toHaveBeenCalledWith({ action: 'set_disabled', user_id: 'u4', disabled: false }))
   })
 
+  it('never lists superadmins, including the signed-in superadmin', async () => {
+    const SUPER_ID = 'a0000000-0000-4000-8000-000000000009'
+    const superRow = {
+      user_id: SUPER_ID,
+      username: 'root',
+      full_name: 'Aa Superadmin',
+      role: 'superadmin',
+      school_id: null,
+      must_change_password: false,
+      disabled: false,
+      school: null,
+    }
+    // Like RLS: the caller's own row comes back unless the query filters superadmins out.
+    fake.setResponder((table, ops) => {
+      if (table === 'schools') return { data: SCHOOLS, error: null }
+      const excludes = ops.some((o) => o[0] === 'neq' && o[1] === 'role' && o[2] === 'superadmin')
+      return { data: excludes ? PROFILES : [superRow, ...PROFILES], error: null }
+    })
+    vi.mocked(useAuth).mockReturnValue(
+      makeAuth({
+        profile: makeProfile({ user_id: SUPER_ID, username: 'root', role: 'superadmin', school_id: null, school: null }),
+      }),
+    )
+    renderPage()
+    await screen.findByText('School User 1')
+    const q = fake.calls.find((c) => c.table === 'profiles')!
+    expect(q.ops).toContainEqual(['neq', 'role', 'superadmin'])
+    expect(screen.queryByText('Aa Superadmin')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Actions for root' })).not.toBeInTheDocument()
+    expect(screen.getByText(/Superadmins are not shown in this list/)).toBeInTheDocument()
+  })
+
   it("doesn't offer disabling or a role change for your own account", async () => {
     renderPage()
     const row = (await screen.findByText('District Admin')).closest('tr')!
