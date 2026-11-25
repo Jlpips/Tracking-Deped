@@ -152,7 +152,7 @@ Notes:
     and also **ban** the user under Authentication → Users → the user, for a full lock-out.
     Do this instead of deleting.
   - **Deleting a superadmin** under Authentication → Users only works for an account that never
-    created any records (including records added by the workbook import). For everyone else the
+    created any records. For everyone else the
     delete fails, so disable them as above.
 - Keep at least two superadmins if you can, so one person leaving does not lock you out.
 
@@ -184,8 +184,9 @@ Use placeholders like `<project-ref>` below; the real values come from your dash
    npx supabase db push
    ```
 
-   `db push` applies the four files in `supabase/migrations`: tables and default document types,
-   security rules, activity logging, and the private `backups` storage bucket.
+   `db push` applies the files in `supabase/migrations`: tables and default document types,
+   security rules, activity logging, the private `backups` storage bucket, and limits on the
+   logging functions.
 
 4. Deploy the two Edge Functions:
 
@@ -195,7 +196,11 @@ Use placeholders like `<project-ref>` below; the real values come from your dash
    ```
 
    No extra secrets are needed. Supabase gives the functions `SUPABASE_URL`, the publishable/anon
-   key and the service_role key automatically.
+   key and the service_role key automatically (`SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY`).
+   The functions also accept `SUPABASE_PUBLISHABLE_KEY` / `SUPABASE_SECRET_KEY` if those are set
+   instead. If you ever **disable the legacy API keys**, check that both functions still work (see
+   the go-live checklist); if a function log says `Missing environment variable`, set the missing
+   one under Edge Functions → Secrets.
 
    `supabase/config.jsonc` turns off Supabase's gateway JWT check (`verify_jwt: false`) for both
    functions. This is deliberate. That older check does not work with the newer JWT signing keys
@@ -206,8 +211,12 @@ Use placeholders like `<project-ref>` below; the real values come from your dash
    - **Sign In / Providers:** turn **off** "Allow new users to sign up". All accounts are created
      by admins (or, for superadmins, in the dashboard). Keep the Email provider itself enabled,
      because sign-in uses it.
-   - Email confirmations are not used. Accounts made by admins in the app are confirmed
-     automatically, so it does not matter whether "Confirm email" is on or off.
+   - Keep **"Confirm email"** and **"Secure email change"** **on** (the defaults for a new cloud
+     project). Accounts made by admins in the app are confirmed automatically, so this does not
+     get in anyone's way. It matters because the sign-in email *is* the username
+     (`<username>@dts.local`): with confirmations off, a signed-in user could change their own
+     sign-in email from the browser and so change the username they appear as. With them on, the
+     change needs a confirmation email that `@dts.local` addresses can never receive.
    - **URL Configuration:** set **Site URL** to your Vercel address (step 5.2), for example
      `https://<your-app>.vercel.app`.
 6. Create the first superadmin ([section 4](#4-create-the-first-superadmin)).
@@ -250,7 +259,18 @@ Do this once after deploying, on a phone-sized browser window (about 360 px wide
 - [ ] School user adds a **Form 6** record (leave dates are required for this type).
 - [ ] Admin sees the record, filters by school, exports **CSV** and opens it in Excel.
 - [ ] Superadmin opens **Activity logs** and sees the entries for the steps above.
+- [ ] Admin creates a **second school user** for a different school. Sign in as that user and
+      confirm they **cannot** see the first school's record.
+- [ ] Admin **disables** a test user who is signed in on another browser or phone. On that
+      device, reload the page: the user must be signed out with an "account disabled"
+      message and must not be able to sign in again.
+- [ ] Confirm sign-ups are off: Authentication → Sign In / Providers shows "Allow new users to
+      sign up" **off**.
 - [ ] Superadmin opens **Backup & restore**, makes a backup and downloads it.
+- [ ] Both Edge Functions work with this project's API keys: creating a user (admin-users) and
+      making a backup (backup) both succeeded above. If either fails, open Edge Functions →
+      the function → **Logs**. `Missing environment variable` usually means the legacy keys
+      were disabled; see section 5.1 step 4.
 - [ ] Run the workbook import if needed ([section 8](#8-import-the-old-excel-workbook)).
 
 ---
@@ -261,12 +281,51 @@ On the free plan, Supabase **pauses a project after about 7 days with no activit
 paused, the app cannot sign anyone in.
 
 - To resume: open the Supabase dashboard, select the project and click **Restore project**.
-  It takes a few minutes. **Your data is kept.**
+  It takes a few minutes.
+- A paused free project can only be restored from the dashboard **for a limited time** after it
+  was paused (90 days at the time of writing). Check the current limit in Supabase's docs before
+  relying on it, and do not leave the project paused.
 - Normal daily use by schools keeps the project awake.
 
-Backups: make a backup **every week** in the app (**Backup & restore → Create backup now**), then
-**download** it and keep the file somewhere else (district computer, shared drive, flash drive).
-Backups stored in Supabase live in the same project, so a downloaded copy is your real safety net.
+### Backups: what protects against what
+
+**In-app backup** (**Backup & restore**) protects against **bad edits and deletes inside this
+same project**: a wrong restore, a deleted record, a school renamed by mistake. Make one every
+week and download it. It does **not** contain sign-in accounts (passwords live in Supabase Auth),
+so it **cannot rebuild a lost project**: restored into a brand-new project, every profile would be
+skipped (no matching sign-in account) and therefore every record too.
+
+**Against losing the whole project** (deleted, locked out, paused too long), keep a **full
+database dump**, made by a superadmin on a computer with this repository and the Supabase CLI,
+after `npx supabase login` and `npx supabase link --project-ref <project-ref>` (section 5.1).
+Do it **every week** (or at least monthly) and keep the files **off-site**, not only on the same
+laptop:
+
+```powershell
+npx supabase db dump --remote -f schema.sql                      # tables, rules, functions
+npx supabase db dump --remote --data-only --use-copy -f data.sql # all data, INCLUDING sign-in accounts (auth schema)
+npx supabase db dump --remote --role-only -f roles.sql           # database roles
+```
+
+(Older CLI versions spell `--remote` as `--linked`. The CLI asks for the database password.)
+`--data-only` already includes the `auth` schema (sign-in accounts and password hashes), so
+treat `data.sql` like a password file: keep it private. If you want the accounts in their own
+file, `npx supabase db dump --remote --data-only --schema auth -f auth_data.sql` dumps only them.
+
+Also export a **CSV of all records** weekly (Records page → Export CSV with no filters). It is a
+human-readable copy you can open in Excel even if nothing else works.
+
+**Restoring a full dump into a new project (outline):**
+
+1. Create a new Supabase project. Get its database connection string (Project Settings →
+   Database → Connection string, "Session pooler" or direct).
+2. Load the three files in one go with `psql` (installed with PostgreSQL), for example:
+   `psql --single-transaction -v ON_ERROR_STOP=1 -f roles.sql -f schema.sql -c "SET session_replication_role = replica" -f data.sql -d "<connection string>"`.
+   (`session_replication_role = replica` stops the activity-log triggers from firing while data loads.)
+3. The files of old in-app backups are **not** in the dump (only their database entries), so
+   download any you want to keep while the old project still works.
+4. Deploy the Edge Functions and point Vercel at the new project (section 5), then run the
+   go-live checklist. Follow Supabase's "Backup and restore using the CLI" guide for details.
 
 ---
 
@@ -277,8 +336,11 @@ database. Script: `scripts/import-workbook.ts`.
 
 Before you start:
 
-- The project is deployed (section 5) and **a superadmin exists** (section 4). The import stops
-  with an error otherwise. Imported records are recorded as created by the superadmin.
+- The project is deployed (section 5) and an **admin account** exists to own the imported
+  records. Every imported record shows this account as **"Encoded by"**, so use the district
+  admin's account or create a dedicated admin named e.g. `import` (Users → add user, role
+  `admin`). The script refuses superadmin accounts (they are hidden from other users and must
+  not appear on records), school users, and disabled accounts.
 - Get the **secret / service_role key** from Supabase → Project Settings → API Keys.
   Put it **only** in your PowerShell window as shown below. Do not save it in any file and do not commit it.
   Close the window when done.
@@ -288,8 +350,12 @@ Before you start:
 ```powershell
 $env:SUPABASE_URL = "https://<project-ref>.supabase.co"
 $env:SUPABASE_SERVICE_ROLE_KEY = "<service_role key>"
-npx tsx scripts/import-workbook.ts "C:\path\to\workbook.xlsx" --dry-run
+npx tsx scripts/import-workbook.ts "C:\path\to\workbook.xlsx" --created-by import --dry-run
 ```
+
+Replace `import` with the admin username you chose. `--created-by` is required; the dry run
+already checks that the account exists, is an admin and is not disabled, and stops with a
+message otherwise.
 
 **Step 2 - read the report.** It lists, per tab, how many rows would be imported and every problem row. Look for:
 
@@ -297,6 +363,7 @@ npx tsx scripts/import-workbook.ts "C:\path\to\workbook.xlsx" --dry-run
 - **Unknown document types:** the type in the sheet does not match any type in **Document types**.
   Either fix the sheet or add the type in the app, then dry-run again.
 - **Form 6 (and other leave types) without FROM/TO dates:** these rows are rejected. Fill in the dates in the sheet.
+- **TO date before FROM date:** these rows are rejected. Fix the dates in the sheet.
 - **Missing name, title, date or DTS number:** these rows are rejected.
 - **Tabs skipped:** a tab with no header row containing both "DTS" and "DOCUMENT TYPE".
 - **Dates:** spot-check a few. Dates typed as text are read as month/day/year; if the workbook used
@@ -308,7 +375,7 @@ Fix the workbook and repeat the dry run until the report looks right.
 **Step 3 - real import:** run the same command without `--dry-run`:
 
 ```powershell
-npx tsx scripts/import-workbook.ts "C:\path\to\workbook.xlsx"
+npx tsx scripts/import-workbook.ts "C:\path\to\workbook.xlsx" --created-by import
 ```
 
 It creates any missing schools (named after the tabs) and inserts the records. Running it again
@@ -325,7 +392,10 @@ Admins use the **Users**, **Schools** and **Document types** pages.
   and give them to the person. They must change the password at first sign-in. You can also create
   other `admin` accounts (no school).
 - **Forgot password:** Users → the user's menu (⋯) → **Reset password**. The old password stops
-  working and a new temporary password is shown once.
+  working and a new temporary password is shown once. Resetting does **not** sign the person out
+  of devices where they are already signed in. If you suspect someone else is using the account,
+  **Disable** it (that is the lock-out tool; it stops open sessions too), then enable it again
+  and reset the password when it is safe.
 - **Someone leaves:** **Disable** the account instead of deleting it. Their records stay. You can
   enable it again later. You cannot disable your own account.
 - **Usernames cannot be changed.** If one is wrong, disable the account and create a new one.
@@ -341,7 +411,9 @@ Superadmins see everything admins see, plus:
   and every backup and restore.
 - **Backup & restore:**
   - **Create backup now** saves the schools, document types, user profiles and records to Supabase
-    storage. Download it and keep a copy elsewhere (weekly).
+    storage. Download it and keep a copy elsewhere (weekly). It undoes mistakes inside this
+    project; it cannot rebuild a lost project. For that, keep the full database dump described in
+    [section 7](#backups-what-protects-against-what).
   - **Restore** from a stored backup or an uploaded file. You must type `RESTORE` to confirm.
   - Before restoring, the app **automatically makes a safety backup**, so a mistaken restore can be undone
     by restoring that safety backup.
