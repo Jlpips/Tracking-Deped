@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { saveRecord, type RecordInput } from '@/lib/records'
 import { supabase } from '@/lib/supabase'
-import { buildTitle } from '@/lib/title'
+import { buildTitle, isForm6 as isForm6Type } from '@/lib/title'
 import type { DocumentType, DtsRecord, School } from '@/lib/types'
 
 export interface RecordFormProps {
@@ -19,7 +19,6 @@ export interface RecordFormProps {
   onSaved(record: DtsRecord): void
 }
 
-const FORM_6 = 'FORM 6 / LEAVE OF ABSENCE'
 const HONORIFICS = ['Mr', 'Mrs', 'Ms', 'Dr'] as const
 type Honorific = (typeof HONORIFICS)[number] | ''
 const OTHERS = 'Others'
@@ -166,7 +165,7 @@ function RecordFormBody({
   }, [isAdmin])
 
   const docType = docTypes.find((t) => t.id === docTypeId)
-  const isForm6 = docType?.name === FORM_6
+  const isForm6 = isForm6Type(docType?.name)
   const requiresDates = docType?.requires_leave_dates ?? false
   const leaveType = leave === OTHERS ? leaveOther.trim() : leave
   const schoolName = isAdmin

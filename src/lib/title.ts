@@ -50,6 +50,11 @@ export function formatDateRange(from: string, to?: string): string {
   return `${MONTHS[a.m - 1]} ${a.d}-${b.d}, ${a.y}`
 }
 
+/** True for the Form 6 (leave) document type, e.g. `FORM 6 / LEAVE OF ABSENCE`. */
+export function isForm6(docTypeName: string | null | undefined): boolean {
+  return /^FORM\s*6\b/.test((docTypeName ?? '').trim().toUpperCase())
+}
+
 export function buildTitle(v: {
   docTypeName: string
   description?: string
@@ -63,7 +68,7 @@ export function buildTitle(v: {
 }): string {
   const typeName = v.docTypeName.trim().toUpperCase()
   let label: string
-  if (/^FORM\s*6\b/.test(typeName)) {
+  if (isForm6(typeName)) {
     label = `Form 6- ${v.leaveType?.trim() || EMPTY}`
   } else if (v.description?.trim()) {
     label = v.description.trim()

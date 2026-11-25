@@ -98,7 +98,8 @@ function downloadCsv(filename: string, csv: string) {
   document.body.appendChild(a)
   a.click()
   a.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 0)
+  // Revoke later: some browsers (notably Safari/iOS) start the download asynchronously.
+  setTimeout(() => URL.revokeObjectURL(url), 10_000)
 }
 
 /** Filter options ordered by name; resolves to [] on any failure so the page still works. */

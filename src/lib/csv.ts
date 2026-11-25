@@ -1,4 +1,4 @@
-const FORMULA_START = /^[=+\-@]/
+const FORMULA_START = /^[=+\-@\t\r]/
 
 function field(v: string | null): string {
   let s = v ?? ''

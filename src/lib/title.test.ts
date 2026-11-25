@@ -1,4 +1,4 @@
-import { buildTitle, formatDateRange } from './title'
+import { buildTitle, formatDateRange, isForm6 } from './title'
 
 const base = { schoolName: 'Anos ES', requiresDates: false, name: 'X' }
 
@@ -68,5 +68,18 @@ describe('buildTitle', () => {
   })
   it('ignores a blank description', () => {
     expect(buildTitle({ ...base, docTypeName: 'GAD', description: '   ' })).toBe('GAD of X - Anos ES')
+  })
+})
+
+describe('isForm6', () => {
+  it('matches the Form 6 type however it is spelled or spaced', () => {
+    expect(isForm6('FORM 6 / LEAVE OF ABSENCE')).toBe(true)
+    expect(isForm6('Form 6 - Leave')).toBe(true)
+    expect(isForm6('  form6 ')).toBe(true)
+  })
+  it('does not match other types', () => {
+    expect(isForm6('FORM 60')).toBe(false)
+    expect(isForm6('PAYMENTS')).toBe(false)
+    expect(isForm6(undefined)).toBe(false)
   })
 })
