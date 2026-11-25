@@ -149,6 +149,15 @@ function excludedText(value: unknown): string | null {
   return text(value)
 }
 
+/**
+ * A PH mobile number (09XXXXXXXXX) typed into a numeric Excel cell loses its leading 0;
+ * restore it for 10-digit numbers starting with 9. Other values are kept as text.
+ */
+function contactText(value: unknown): string | null {
+  if (typeof value === 'number' && /^9\d{9}$/.test(String(value))) return `0${value}`
+  return text(value)
+}
+
 const REQUIRED_FOR_HEADER: Field[] = ['dts_number', 'document_type']
 
 export function parseSheet(sheetName: string, rows: unknown[][]): ParsedSheet {
@@ -257,7 +266,7 @@ export function parseSheet(sheetName: string, rows: unknown[][]): ParsedSheet {
       row: rowNumber,
       date,
       name,
-      contact: text(cell(row, 'contact')),
+      contact: contactText(cell(row, 'contact')),
       title,
       dts_number: dts,
       document_type: documentType.toUpperCase(),

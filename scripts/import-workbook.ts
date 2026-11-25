@@ -212,6 +212,8 @@ async function main() {
   if (!dryRun) {
     for (const summary of summaries) {
       const candidates = candidatesBySchool.get(summary.school) ?? []
+      // Don't create a school for a tab that imports nothing (e.g. a stray Summary/Template tab).
+      if (candidates.length === 0) continue
       let school = schoolByName.get(summary.school.toUpperCase())
       if (!school) {
         const { data, error } = await db.from('schools').insert({ name: summary.school }).select('id, name').single()
@@ -276,7 +278,13 @@ async function main() {
   console.table(
     summaries.map((s) => ({
       School: s.school,
-      'School exists': s.existing ? 'yes' : dryRun ? 'no (would create)' : 'no (created)',
+      'School exists': s.existing
+        ? 'yes'
+        : !candidatesBySchool.get(s.school)?.length
+          ? 'no (not created: nothing to import)'
+          : dryRun
+            ? 'no (would create)'
+            : 'no (created)',
       'Parsed rows': s.parsed,
       [verb]: s.imported,
       'Duplicates skipped': s.duplicates,

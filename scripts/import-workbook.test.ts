@@ -137,7 +137,17 @@ describe('parseSheet', () => {
   it('converts numeric cells in text columns to strings', () => {
     const result = parseSheet('S', [HEADER, row({ DTS: 108874, 'CONTACT NUMBER': 9171234567 })])
     expect(result.records[0].dts_number).toBe('108874')
-    expect(result.records[0].contact).toBe('9171234567')
+    expect(result.records[0].contact).toBe('09171234567')
+  })
+
+  it('restores the leading 0 only on 10-digit numeric mobile numbers starting with 9', () => {
+    const contacts = parseSheet('S', [
+      HEADER,
+      row({ DTS: 'C-1', 'CONTACT NUMBER': 9171234567 }),
+      row({ DTS: 'C-2', 'CONTACT NUMBER': '09171234567' }),
+      row({ DTS: 'C-3', 'CONTACT NUMBER': 427123 }),
+    ]).records.map((r) => r.contact)
+    expect(contacts).toEqual(['09171234567', '09171234567', '427123'])
   })
 
   it('reports a sheet without a recognisable header row', () => {
