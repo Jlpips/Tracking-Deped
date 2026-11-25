@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DTS Tracker – Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+ --navy:#0E2A47;--navy2:#16385d;--blue:#1456A0;--blue-soft:#e6eef8;--maroon:#9B1C31;
+ --bg:#F2F4F7;--surface:#fff;--ink:#101828;--muted:#667085;--line:#e2e6ec;--line2:#eef0f4;
+ --hr:#1456A0;--pay:#0f8a6a;--oth:#b7791f;
+ --r:8px;
+}
+@media (prefers-color-scheme:dark){:root{--bg:#0a121c;--surface:#101b29;--ink:#eef2f7;--muted:#93a0b2;--line:#1f2d3f;--line2:#16222f;--blue-soft:#12263f;--blue:#5b9bea}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font:14px/1.5 "Public Sans",system-ui,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);font-feature-settings:"tnum"}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Consolas,monospace;font-size:12.5px}
+.muted{color:var(--muted)}
+
+/* demo bar */
+.demo{background:#fff8e1;color:#5c4400;padding:7px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12.5px;border-bottom:1px solid #f0d98a}
+.demo select{background:#fff;color:#111;border:1px solid #d9c27a;border-radius:6px;padding:3px 8px}
+.demo b{background:#5c4400;color:#fff8e1;padding:1px 7px;border-radius:4px}
+
+/* shell */
+.app{display:grid;grid-template-columns:248px 1fr;min-height:calc(100vh - 38px)}
+aside{background:var(--navy);color:#cfd9e6;padding:18px 14px;display:flex;flex-direction:column;position:sticky;top:0;height:calc(100vh - 38px)}
+.logo{display:flex;gap:10px;align-items:center;padding:2px 8px 18px}
+.mark{width:34px;height:34px;border-radius:8px;background:#fff;color:var(--navy);display:grid;place-items:center;font-weight:700;font-size:13px;letter-spacing:-.02em}
+.logo b{display:block;color:#fff;font-size:15px;line-height:1.1}.logo span{font-size:12px;color:#8ea6c2}
+.nav{display:flex;gap:10px;align-items:center;width:100%;padding:9px 10px;border:0;background:none;color:#b9c8da;border-radius:7px;cursor:pointer;text-align:left}
+.nav svg{width:17px;height:17px;flex-shrink:0;opacity:.85}
+.nav:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav.on{background:rgba(255,255,255,.13);color:#fff;font-weight:600}
+.grp{font-size:12px;color:#7e97b5;margin:18px 10px 6px}
+.sys{border-top:1px solid rgba(255,255,255,.12);margin-top:14px;padding-top:2px}
+.who{margin-top:auto;display:flex;gap:10px;align-items:center;padding:12px 8px 2px;border-top:1px solid rgba(255,255,255,.12)}
+.av{width:34px;height:34px;border-radius:50%;background:#2b4f7a;color:#fff;display:grid;place-items:center;font-weight:600;font-size:13px;flex-shrink:0}
+.who b{display:block;color:#fff;font-size:13px;line-height:1.2}.who span{font-size:12px;color:#8ea6c2}
+.who button{margin-left:auto;background:none;border:0;color:#8ea6c2;cursor:pointer;padding:4px;border-radius:6px}.who button:hover{color:#fff;background:rgba(255,255,255,.08)}
+
+main{padding:26px 32px 48px;min-width:0;max-width:1320px}
+.head{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px}
+h1{font-size:24px;line-height:1.2;margin:0;letter-spacing:-.015em;font-weight:700}
+.sub{color:var(--muted);margin:3px 0 0}
+.grow{flex:1}
+
+/* controls */
+.btn{height:36px;padding:0 14px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:500;display:inline-flex;gap:7px;align-items:center;white-space:nowrap}
+.btn:hover{background:var(--line2)}
+.btn.p{background:var(--blue);color:#fff;border-color:var(--blue)}.btn.p:hover{filter:brightness(1.08)}
+.btn.d{color:var(--maroon);border-color:color-mix(in srgb,var(--maroon) 35%,var(--line))}
+.btn.sm{height:30px;padding:0 10px;font-size:13px}
+.btn svg{width:15px;height:15px}
+.input{height:36px;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:0 11px;min-width:0;width:100%}
+.input:disabled{background:var(--line2);color:var(--muted)}
+textarea.input[readonly]{background:var(--blue-soft);border-color:color-mix(in srgb,var(--blue) 25%,transparent)}
+.search{position:relative;flex:1;min-width:220px;max-width:360px}
+.search svg{position:absolute;left:10px;top:10px;width:16px;height:16px;color:var(--muted)}
+.search .input{padding-left:33px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer;display:inline-flex;gap:7px;align-items:center}
+.chip i{width:8px;height:8px;border-radius:50%;display:block}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+
+/* summary strip */
+.strip{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:18px}
+.strip div{padding:14px 18px;border-right:1px solid var(--line)}.strip div:last-child{border:0}
+.strip b{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.1;display:block}
+.strip span{color:var(--muted);font-size:13px}
+
+/* table */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.tw{overflow:auto}
+table{border-collapse:collapse;width:100%;min-width:880px}
+th{text-align:left;font-weight:600;color:var(--muted);font-size:12.5px;padding:11px 14px;background:color-mix(in srgb,var(--line2) 70%,var(--surface));border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:12px 14px;border-bottom:1px solid var(--line2);vertical-align:top}
+tbody tr:last-child td{border-bottom:0}
+tr.rec{cursor:pointer}tr.rec:hover td{background:color-mix(in srgb,var(--blue-soft) 55%,var(--surface))}
+tr.rec td:first-child{box-shadow:inset 3px 0 0 var(--rail,var(--line))}
+.ttl{font-weight:500;max-width:420px}
+.by{color:var(--muted);font-size:12.5px;margin-top:1px}
+.tag{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:12px;padding:2px 8px;border-radius:5px;background:var(--line2);border:1px dashed var(--line);white-space:nowrap}
+.pill{display:inline-flex;gap:6px;align-items:center;font-size:12.5px;font-weight:500;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.pill i{width:7px;height:7px;border-radius:50%;display:block;background:currentColor}
+.t-hr{color:var(--hr);background:color-mix(in srgb,var(--hr) 12%,transparent)}
+.t-pay{color:var(--pay);background:color-mix(in srgb,var(--pay) 13%,transparent)}
+.r-user{color:var(--muted);background:var(--line2)}.r-admin{color:var(--blue);background:var(--blue-soft)}.r-super{color:#fff;background:var(--navy)}
+.on-ok{color:var(--pay)}.on-off{color:var(--maroon)}.on-warn{color:var(--oth)}
+.foot{display:flex;gap:10px;align-items:center;padding:11px 14px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+
+/* side sheet */
+.ov{position:fixed;inset:0;background:rgba(10,18,28,.5);display:none;justify-content:center;align-items:center;padding:16px;z-index:30}
+.ov.on{display:flex}
+.sheet{background:var(--surface);width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;border-radius:12px;border:1px solid var(--line);box-shadow:0 24px 60px rgba(0,0,0,.3);animation:in .16s ease-out}
+@keyframes in{from{transform:translateY(10px) scale(.98);opacity:0}}
+@media(prefers-reduced-motion:reduce){.sheet{animation:none}}
+.sh-h{display:flex;align-items:center;gap:10px;padding:18px 22px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface);z-index:1;border-radius:12px 12px 0 0}
+.sh-h h2{margin:0;font-size:17px}
+.x{margin-left:auto;border:0;background:none;cursor:pointer;color:var(--muted);padding:6px;border-radius:6px}.x:hover{background:var(--line2)}
+.sh-b{padding:20px 22px}.sh-f{display:flex;gap:8px;justify-content:flex-end;padding:14px 22px;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--surface);border-radius:0 0 12px 12px}
+.f{margin-bottom:14px}.f label{display:block;font-weight:600;font-size:13px;margin-bottom:5px}
+.hint{font-size:12.5px;color:var(--muted);margin-top:4px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.route{display:flex;gap:10px;align-items:center;background:var(--blue-soft);border:1px solid color-mix(in srgb,var(--blue) 25%,transparent);color:var(--blue);padding:9px 12px;border-radius:var(--r);font-weight:600}
+.route small{font-weight:400;color:var(--muted);margin-left:auto}
+.lockrow{display:flex;gap:8px;align-items:center}
+.warn{border:1px solid color-mix(in srgb,var(--maroon) 35%,var(--line));background:color-mix(in srgb,var(--maroon) 8%,var(--surface));color:var(--maroon);border-radius:var(--r);padding:11px 13px}
+
+/* routing slip (detail) */
+.slip{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.slip-top{padding:16px 18px;background:var(--navy);color:#fff}
+.slip-top small{color:#9fb6d2;display:block;margin-bottom:6px}
+.slip-top .tag{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3);color:#fff;font-size:14px}
+.perf{height:0;border-top:2px dashed var(--line);position:relative;margin:0 -1px}
+.perf:before,.perf:after{content:"";position:absolute;top:-9px;width:16px;height:16px;border-radius:50%;background:var(--surface);border:1px solid var(--line)}
+.perf:before{left:-9px}.perf:after{right:-9px}
+.dl{display:grid;grid-template-columns:120px 1fr;gap:8px 12px;padding:16px 18px;margin:0}
+.dl dt{color:var(--muted)}.dl dd{margin:0;font-weight:500}
+.flow{display:flex;align-items:center;gap:10px;padding:0 18px 18px;font-size:13px}
+.flow .n{flex:1;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.flow .n small{display:block;color:var(--muted)}
+.flow .ar{color:var(--muted)}
+
+/* logs */
+.log{display:grid;grid-template-columns:150px 1fr auto;gap:14px;padding:13px 16px;border-bottom:1px solid var(--line2);align-items:start}
+.log:last-child{border:0}
+.act{display:inline-flex;gap:7px;align-items:center;font-weight:600;font-size:13px}
+.act i{width:9px;height:9px;border-radius:50%;display:block}
+.a-create{background:var(--pay)}.a-edit{background:var(--blue)}.a-del{background:var(--maroon)}.a-sys{background:var(--navy)}.a-login{background:#98a2b3}.a-fail{background:var(--maroon);box-shadow:0 0 0 3px color-mix(in srgb,var(--maroon) 25%,transparent)}
+
+/* backup */
+.bk{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+.bk .box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
+.bk h3{margin:0 0 3px;font-size:15px}
+.drop{border:1.5px dashed var(--line);border-radius:var(--r);padding:16px;text-align:center;color:var(--muted);margin:12px 0}
+
+/* login */
+.lg{min-height:calc(100vh - 38px);display:grid;grid-template-columns:1.05fr 1fr}
+.lg-l{background:var(--navy);color:#fff;padding:48px;display:flex;flex-direction:column;justify-content:space-between}
+.lg-l h2{font-size:34px;line-height:1.15;letter-spacing:-.02em;margin:0 0 12px;max-width:14ch}
+.lg-l p{color:#a9bdd6;max-width:36ch;margin:0}
+.lg-l .tag{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.3);color:#d6e2f1}
+.lg-r{display:grid;place-items:center;padding:32px}
+.lg-r form{width:min(360px,100%)}
+.lg-r h1{font-size:22px;margin-bottom:4px}
+
+.kebab{width:32px;height:32px;padding:0;justify-content:center;border-color:transparent;background:none;font-size:18px;line-height:1;color:var(--muted)}
+.kebab:hover{background:var(--line2);color:var(--ink)}
+.menu{position:fixed;z-index:40;min-width:176px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.18);padding:5px;display:none}
+.menu.on{display:block}
+.menu button{display:block;width:100%;text-align:left;border:0;background:none;padding:8px 10px;border-radius:6px;cursor:pointer}
+.menu button:hover{background:var(--line2)}
+.menu button.d{color:var(--maroon)}
+.menu hr{border:0;border-top:1px solid var(--line);margin:5px 0}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;display:none;z-index:50;font-weight:500}
+
+@media(max-width:900px){
+ .app{grid-template-columns:1fr}
+ aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap;gap:4px;padding:10px}
+ .logo{padding:0 8px 0 4px}.grp,.who,.sys{display:none}
+ .nav{width:auto}
+ main{padding:18px 14px 40px}
+ .strip{grid-template-columns:1fr 1fr}.strip div:nth-child(2){border-right:0}.strip div:nth-child(-n+2){border-bottom:1px solid var(--line)}
+ .bk{grid-template-columns:1fr}
+ .lg{grid-template-columns:1fr}.lg-l{display:none}
+ .log{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="demo"><b>MOCKUP</b> Sample data only. View as:
+<select id="roleSel" aria-label="Role"><option value="user">User (school)</option><option value="admin">Admin</option><option value="super">Superadmin (hidden)</option><option value="login">Login screen</option><option value="first">First login (change password)</option></select>
+<span id="schoolPick">School: <select id="schoolSel" aria-label="School"></select></span></div>
+<div id="root"></div>
+<div class="menu" id="menu" role="menu"></div>
+<div class="toast" id="toast" role="status"></div>
+<div class="ov" id="ov"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+
+<script>
+const IC={
+ rec:'<path d="M5 4h14v16H5zM9 9h6M9 13h6M9 17h3"/>',
+ users:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.4 2.7-5.5 6-5.5s6 2.1 6 5.5M16 5.2a3.2 3.2 0 010 5.6M18 14.8c1.8.7 3 2.3 3 5.2"/>',
+ school:'<path d="M3 10l9-5 9 5-9 5zM7 12.5V17c0 1 2.2 2 5 2s5-1 5-2v-4.5"/>',
+ type:'<path d="M4 7h16M4 12h16M4 17h10"/>',
+ log:'<path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="8.5"/>',
+ bk:'<path d="M4 7c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 7v5c0 1.7 3.6 3 8 3s8-1.3 8-3V7M4 12v5c0 1.7 3.6 3 8 3s8-1.3 8-3v-5"/>',
+ out:'<path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ dl:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',
+ search:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/>',
+ x:'<path d="M6 6l12 12M18 6L6 18"/>',
+ lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>'
+};
+const ic=(n,s=17)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IC[n]}</svg>`;
+const SCHOOLS=["Amontay ES","Anos ES","Calantas ES","Lahing ES","Mabini Ibaba ES","Macalelon CES","MCES Annex","Malabahay ES","Mambog ES"];
+const ROUTES=[["ACTION PLAN", "PLANNING"], ["ACTION RESEARCH", "SGOD"], ["ADDITIONAL TRACK", "SGOD"], ["ADOPT-A-SCHOOL", "SGOD"], ["AIP/APP/SIP-ONLINE 2025", "PLANNING"], ["ALS RELATED CONCERN", "CID"], ["APPLICATION PLAN / WAP", "SGOD"], ["APPOINTMENT/PERTINENT PAPERS/APPLICATION/ERF/RECLASS", "HR 2 & 3"], ["ARMCHAIRS", "EFS"], ["AUTHORITY TO TRAVEL / LOCATOR SLIP", "ASDS"], ["BEIS 3RD DIST (PRIVATE SCHOOL-PRIVATE SEC)", "ACCOUNTING OFFICE"], ["BERF", "SGOD"], ["BUDGET ALLOCATION/REQUEST FOR MATERNITY DOUBLE PAY", "SDS"], ["CHANGE STATUS", "HR 2 & 3"], ["CLEARANCE", "HR 2 & 3"], ["DATA SHARING AGREEMENT / CONDUCT STUDY (SCHOOL)", "PLANNING"], ["DEMOLITION", "EFS"], ["DEPED EMAIL", "HR 2 & 3"], ["DTR", "HR 2 & 3"], ["EBEIS/SCHOOL PROFILE-PRIVATE-PLANNING", "PLANNING"], ["ELLNA", "CID"], ["FACULTY ROOM", "EFS"], ["FIDELITY BOND", "ADMIN OFFICE"], ["FORM 6 / LEAVE OF ABSENCE", "HR 2 & 3"], ["FORM 7", "HR 2 & 3"], ["GAD", "SGOD"], ["GAWAD", "SGOD"], ["INTEGRATION", "PERSONNEL (PAYROLL)"], ["INVITATION LETTER", "SDS"], ["IPCRF (NTP)", "PLANNING"], ["IPCRF / OPCRF", "ASDS"], ["ITR / CTC", "ASDS"], ["LAC SESSION", "CID"], ["LEGAL", "ADMIN OFFICE"], ["LEGAL DOCS", "SDS"], ["LFIFA", "SGOD"], ["LOAD ALLOWANCE", "ACCOUNTING OFFICE"], ["LOAN-GSIS / PAGIBIG", "ADMIN OFFICE"], ["LRN/LIS", "PLANNING"], ["MOA", "SGOD"], ["MONETIZATION", "HR 2 & 3"], ["MOOE RELATED", "ACCOUNTING OFFICE"], ["NEAP", "SGOD"], ["NEW ACCOUNT / CHANGE SIGNATORIES", "CASHIER"], ["NOSI/NOSA", "HR 2 & 3"], ["NSBI", "EFS"], ["NUMERACY TEST", "CID"], ["OMNIBUS AFFIDAVIT", "CID"], ["PAYMENTS", "PERSONNEL (PAYROLL)"], ["PERMIT TO STUDY", "HR 2 & 3"], ["PERMIT TO TEACH", "ADMIN OFFICE"], ["POW", "EFS"], ["PRE TEST", "CID"], ["PROGRAM IMPLEMENTATION PLAN", "SGOD"], ["PROVIDENT LOAN", "HR 2 & 3"], ["PSDS PAPERS/CONCERNS", "CID"], ["REQUEST LETTER", "SDS"], ["REQUEST TO TRANSFER", "SDS"], ["RESIGNATION", "HR 2 & 3"], ["RETIREMENT", "HR 2 & 3"], ["RETURN TO DUTY / SERVICE", "HR 2 & 3"], ["SCHOOL MAPPING", "EFS"], ["SCHOOL TITLING", "SGOD"], ["SERVICE CREDIT", "HR 2 & 3"], ["SERVICE RECORD-H.S/SECONDARY", "HR 2 & 3"], ["SHS IMPLEMENTATION", "SGOD"], ["SPED", "CID"], ["TRAVEL", "ASDS"], ["TRAVEL ABROAD", "HR 2 & 3"], ["WORK AND FINANCIAL PLAN", "PLANNING"], ["WORK IMMERSION PLAN", "CID"]];
+const OFFICE=Object.fromEntries(ROUTES);const OFFICES=[...new Set(ROUTES.map(r=>r[1]))].sort();
+const LEAVE=new Set(["FORM 6 / LEAVE OF ABSENCE","TRAVEL","TRAVEL ABROAD","AUTHORITY TO TRAVEL / LOCATOR SLIP"]);const F6="FORM 6 / LEAVE OF ABSENCE";
+const REC=[
+["Nov 23, 2026","Teacher A","108874","0900 000 0001","Form 6- Wellness Leave - December 9-11, 2026 of Mrs Teacher A - Calantas ES","108874GCNBR-000024","FORM 6 / LEAVE OF ABSENCE","Dec 9, 2026","Dec 11, 2026","","Calantas ES"],
+["Nov 23, 2026","Teacher B","108874","0900 000 0002","Form 6- Wellness Leave - December 1-3, 2026 of Mr Teacher B - Calantas ES","108874LR9XW-000021","FORM 6 / LEAVE OF ABSENCE","Dec 1, 2026","Dec 3, 2026","","Calantas ES"],
+["Nov 17, 2026","Teacher C","108874","0900 000 0003","Salary Differential of Mrs Teacher C - Calantas ES","108874ZBYW3-000016","PAYMENTS","","","","Calantas ES"],
+["Nov 20, 2026","Teacher D","108870","0900 000 0004","Form 6- Sick Leave - November 26-27, 2026 of Ms Teacher D - Anos ES","108870QPCOC-000019","FORM 6 / LEAVE OF ABSENCE","Nov 26, 2026","Nov 27, 2026","Nov 28, 2026","Anos ES"],
+["Nov 19, 2026","Teacher E","108871","0900 000 0005","Form 6- Vacation Leave - December 9-10, 2026 of Mrs Teacher E - Lahing ES","108871AKZYK-000022","FORM 6 / LEAVE OF ABSENCE","Dec 9, 2026","Dec 10, 2026","","Lahing ES"],
+["Nov 21, 2026","Teacher G","108874","0900 000 0007","Locator Slip - November 21, 2026 of Mr Teacher G - Calantas ES","108874LOC07-000020","AUTHORITY TO TRAVEL / LOCATOR SLIP","Nov 21, 2026","Nov 21, 2026","","Calantas ES"],
+["Nov 20, 2026","School Head H","108870","0900 000 0008","MOOE Liquidation of Mr School Head H - Anos ES","108870MOE08-000018","MOOE RELATED","","","","Anos ES"],
+["Nov 18, 2026","Teacher F","108872","0900 000 0006","Travel Allowance of Ms Teacher F - Mambog ES","108872TRV01-000011","PAYMENTS","","","","Mambog ES"]
+];
+const USERS=[["School User 1","108874","user","Calantas ES",1],["School User 2","108870","user","Anos ES",1],["School User 3","108871","user","Lahing ES",2],["School User 4","108872","user","Mambog ES",0],["District Admin","macalelon-admin","admin","—",1]];
+const ST={1:["Active","on-ok"],2:["Must change password","on-warn"],0:["Disabled","on-off"]};
+const LOGS=[["Nov 24, 9:42 AM","School User 1","create","Added record","108874GCNBR-000024 · Calantas ES"],["Nov 24, 9:15 AM","District Admin","edit","Edited record","108870QPCOC-000019 · Excluded date changed"],["Nov 24, 8:58 AM","District Admin","create","Added user","School User 3 · Lahing ES"],["Nov 23, 4:30 PM","School User 2","del","Deleted record","108870XXXXX-000015 · Anos ES"],["Nov 23, 3:10 PM","Superadmin","sys","Created backup","dts-backup-2026-11-23.json · 142 records"],["Nov 23, 11:02 AM","District Admin","sys","Exported CSV","All schools · 142 rows"],["Nov 22, 5:01 PM","School User 3","login","Signed in",""],["Nov 22, 2:20 PM","Unknown","fail","Failed sign-in","Wrong password · username 108874"]];
+const BK=[["dts-backup-2026-11-23.json","Nov 23, 3:10 PM","142 records"],["dts-backup-2026-11-16.json","Nov 16, 3:05 PM","131 records"],["dts-backup-2026-11-09.json","Nov 9, 2:48 PM","118 records"]];
+const $=s=>document.querySelector(s);
+let role="user",school="Calantas ES",page="records",typeF="all",tq="";
+const NAV={user:[["records","Records","rec"]],
+ admin:[["records","Records","rec"],["users","Users","users"],["schools","Schools","school"],["types","Document types","type"]],
+ super:[["records","Records","rec"],["users","Users","users"],["schools","Schools","school"],["types","Document types","type"],["logs","Activity logs","log"],["backup","Backup & restore","bk"]]};
+const ME={user:["S1","School User 1","Calantas"],admin:["DA","District Admin","Admin"],super:["SA","Superadmin","Full access"]};
+function toast(m){const t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(t._t);t._t=setTimeout(()=>t.style.display="none",2200)}
+function closeSheet(){$("#ov").classList.remove("on")}
+function sheet(title,body,foot){$("#sheet").innerHTML=`<div class="sh-h"><h2>${title}</h2><button class="x" aria-label="Close" onclick="closeSheet()">${ic("x")}</button></div><div class="sh-b">${body}</div>${foot?`<div class="sh-f">${foot}</div>`:""}`;$("#ov").classList.add("on")}
+$("#ov").addEventListener("click",e=>{if(e.target.id==="ov")closeSheet()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeSheet();closeMenu()}});
+SCHOOLS.forEach(s=>{const o=document.createElement("option");o.textContent=s;$("#schoolSel").appendChild(o)});$("#schoolSel").value=school;
+$("#roleSel").onchange=e=>{role=e.target.value;page="records";typeF="all";render()};
+$("#schoolSel").onchange=e=>{school=e.target.value;render()};
+const MENUS=[];
+function kebab(items){MENUS.push(items);return `<button class="btn kebab" aria-label="Actions" aria-haspopup="menu" onclick="openMenu(event,${MENUS.length-1})">&#8943;</button>`}
+function openMenu(e,n){
+ e.stopPropagation();
+ const m=$("#menu"),b=e.currentTarget.getBoundingClientRect();
+ m.innerHTML=MENUS[n].map(([l,a,d])=>l==="-"?"<hr>":`<button role="menuitem" class="${d?"d":""}" onclick="closeMenu();${a}">${l}</button>`).join("");
+ m.classList.add("on");
+ const w=m.offsetWidth,h=m.offsetHeight;
+ m.style.left=Math.max(8,Math.min(b.right-w,innerWidth-w-8))+"px";
+ m.style.top=(b.bottom+h+8>innerHeight?b.top-h-4:b.bottom+4)+"px";
+}
+function closeMenu(){$("#menu").classList.remove("on")}
+document.addEventListener("click",closeMenu);
+addEventListener("scroll",closeMenu,true);
+addEventListener("resize",closeMenu);
+function go(p){page=p;render()}
+function render(){
+ closeSheet();
+ $("#schoolPick").style.display=role==="user"?"inline":"none";
+ if(role==="login")return login();
+ if(role==="first")return firstLogin();
+ const nav=NAV[role].map(([k,l,i])=>{
+  const pre=k==="logs"?'<div class="sys"></div>':"";
+  return pre+`<button class="nav ${k===page?"on":""}" onclick="go('${k}')">${ic(i)}${l}</button>`}).join("");
+ const m=ME[role];
+ $("#root").innerHTML=`<div class="app"><aside><div class="logo"><div class="mark">DTS</div><div><b>DTS Tracker</b><span>Macalelon District</span></div></div>${nav}
+ <div class="who"><div class="av">${m[0]}</div><div><b>${m[1]}</b><span>${role==="user"?school:m[2]}</span></div><button aria-label="Log out" title="Log out" onclick="$('#roleSel').value='login';role='login';render()">${ic("out")}</button></div></aside><main id="m"></main></div>`;
+ ({records:pRecords,users:pUsers,schools:pSchools,types:pTypes,logs:pLogs,backup:pBackup})[page]();
+}
+function login(){
+ $("#root").innerHTML=`<div class="lg"><div class="lg-l"><div class="logo" style="padding:0"><div class="mark">DTS</div><div><b>DTS Tracker</b><span>Macalelon District</span></div></div>
+ <div><h2>Know where every document is.</h2><p>Log documents entered in DTS and see right away which office they go to.</p></div>
+ <span class="tag" style="align-self:flex-start">108874GCNBR-000024</span></div>
+ <div class="lg-r"><form onsubmit="event.preventDefault();$('#roleSel').value='first';role='first';render()"><h1>Sign in</h1><p class="sub" style="margin-bottom:20px">Use the account issued by the district office.</p>
+ <div class="f"><label>Username</label><input class="input" placeholder="e.g. your School ID" autocomplete="username" value="108871"></div>
+ <div class="f"><label>Password</label><input class="input" type="password" value="password" autocomplete="current-password"></div>
+ <button class="btn p" style="width:100%;justify-content:center">Sign in</button>
+ <p class="hint" style="margin-top:14px">There is no sign-up. Your username and temporary password come from the district office. Forgot your password? Ask them to reset it.</p></form></div></div>`;
+}
+function firstLogin(){
+ $("#root").innerHTML=`<div class="lg"><div class="lg-l"><div class="logo" style="padding:0"><div class="mark">DTS</div><div><b>DTS Tracker</b><span>Macalelon District</span></div></div>
+ <div><h2>Set your own password.</h2><p>The password you were given is temporary. Choose a new one to continue. Only you will know it.</p></div><span></span></div>
+ <div class="lg-r"><form onsubmit="event.preventDefault();$('#roleSel').value='user';role='user';render();toast('Password changed')"><h1>Change your password</h1><p class="sub" style="margin-bottom:20px">First sign-in for <b class="mono">108871</b></p>
+ <div class="f"><label>Temporary password</label><input class="input" type="password" value="Dts-4821-Kp" autocomplete="current-password"></div>
+ <div class="f"><label>New password</label><input class="input" type="password" autocomplete="new-password"><div class="hint">At least 8 characters, with a letter and a number.</div></div>
+ <div class="f"><label>Confirm new password</label><input class="input" type="password" autocomplete="new-password"></div>
+ <button class="btn p" style="width:100%;justify-content:center">Save password and continue</button></form></div></div>`;
+}
+function creds(user,pw,title){
+ sheet(title,`<p class="sub" style="margin:0 0 14px">Give these to the user. They must change the password when they first sign in. The password is shown only once.</p>
+ <dl class="dl" style="padding:0;grid-template-columns:130px 1fr"><dt>Username</dt><dd class="mono">${user}</dd><dt>Temporary password</dt><dd class="mono">${pw}</dd></dl>`,
+ `<button class="btn" onclick="toast('Copied')">Copy both</button><button class="btn p" onclick="closeSheet()">Done</button>`);
+}
+const genPw=()=>"Dts-"+Math.floor(1000+Math.random()*9000)+"-"+Math.random().toString(36).slice(2,4).toUpperCase()+"x";
+const rows=()=>REC.filter(r=>(role!=="user"||r[10]===school)&&(typeF==="all"||OFFICE[r[6]]===typeF));
+function pRecords(){
+ const all=REC.filter(r=>role!=="user"||r[10]===school);
+ const rs=rows();
+ $("#m").innerHTML=`<div class="head"><div><h1>Records</h1><p class="sub">${role==="user"?`Documents of ${school}.`:"Documents from every school in the district."}</p></div><span class="grow"></span>
+ <button class="btn" onclick="toast('Exported CSV')">${ic("dl",15)}Export CSV</button><button class="btn p" onclick="recForm()">${ic("plus",15)}Add record</button></div>
+ <div class="strip"><div><b>${all.length}</b><span>Total records</span></div><div><b>${all.filter(r=>r[6]===F6).length}</b><span>Form 6 / Leave</span></div><div><b>${new Set(all.map(r=>OFFICE[r[6]])).size}</b><span>Offices routed to</span></div><div><b>${all.length}</b><span>This month</span></div></div>
+ <div class="toolbar"><div class="search">${ic("search",16)}<input class="input" placeholder="Search name, title, or DTS number" aria-label="Search"></div>
+ ${role!=="user"?`<select class="input" style="width:auto" aria-label="School"><option>All schools</option>${SCHOOLS.map(s=>`<option>${s}</option>`)}</select>`:""}
+ <select class="input" style="width:auto" aria-label="Office" onchange="typeF=this.value;pRecords()"><option value="all">All offices</option>${OFFICES.map(o=>`<option ${typeF===o?"selected":""}>${o}</option>`).join("")}</select></div>
+ <div class="panel"><div class="tw"><table><thead><tr><th>Date</th>${role!=="user"?"<th>School</th>":""}<th>Document</th><th>DTS number</th><th>Office</th><th>Dates</th><th></th></tr></thead><tbody>
+ ${rs.length?rs.map(r=>{const i=REC.indexOf(r);return `<tr class="rec" onclick="detail(${i})"><td style="white-space:nowrap">${r[0]}</td>${role!=="user"?`<td style="white-space:nowrap">${r[10]}</td>`:""}<td><div class="ttl">${r[4]}</div><div class="by">${r[1]} · encoded by <span class="mono">${r[2]}</span></div></td><td><span class="tag">${r[5]}</span></td><td><span class="pill t-hr">${OFFICE[r[6]]}</span><div class="by" style="max-width:220px">${r[6]}</div></td><td class="mono" style="white-space:nowrap">${r[7]?`${r[7].replace(", 2026","")} – ${r[8].replace(", 2026","")}${r[9]?`<div class="muted">excl. ${r[9].replace(", 2026","")}</div>`:""}`:'<span class="muted">—</span>'}</td><td style="white-space:nowrap"><span onclick="event.stopPropagation()">${kebab([["View routing slip","detail("+i+")"],["Edit","recForm("+i+")"],["-"],["Delete","toast('Record deleted')",1]])}</span></td></tr>`}).join(""):`<tr><td colspan="7" style="text-align:center;padding:40px" class="muted">No matching records. Try a different filter.</td></tr>`}
+ </tbody></table></div><div class="foot"><span>Showing ${rs.length} of ${all.length}</span><span class="grow"></span><button class="btn sm" disabled>Previous</button><button class="btn sm" disabled>Next</button></div></div>`;
+}
+function detail(i){
+ const r=REC[i];
+ sheet("Routing slip",`<div class="slip"><div class="slip-top"><small>DTS number</small><span class="tag">${r[5]}</span></div>
+ <dl class="dl"><dt>Document</dt><dd>${r[4]}</dd><dt>Document type</dt><dd>${r[6]}</dd><dt>Owner</dt><dd>${r[1]}</dd><dt>Encoded by</dt><dd class="mono">${r[2]}</dd><dt>Contact</dt><dd>${r[3]}</dd><dt>School</dt><dd>${r[10]}</dd><dt>Date</dt><dd>${r[0]}</dd>${r[7]?`<dt>Dates</dt><dd>${r[7]} – ${r[8]}${r[9]?`<br><span class="muted">Excluded: ${r[9]}</span>`:""}`:""}</dd></dl>
+ <div class="perf"></div><div style="padding:16px 18px 10px;font-weight:600">Routed to</div>
+ <div class="flow"><div class="n"><small>From</small>${r[10]}</div><span class="ar">${ic("plus",0)}→</span><div class="n" style="border-color:var(--blue);background:var(--blue-soft)"><small>Office</small><b>${OFFICE[r[6]]}</b></div></div></div>`,
+ `<button class="btn d" onclick="closeSheet();toast('Record deleted')">Delete</button><span class="grow"></span><button class="btn" onclick="closeSheet()">Close</button><button class="btn p" onclick="recForm(${i})">Edit</button>`);
+}
+const HON=["Mr","Mrs","Ms","Dr"];
+const LEAVES=["Vacation Leave","Mandatory/Forced Leave","Sick Leave","Wellness Leave","Special Privilege Leave","Maternity Leave","Paternity Leave","Solo Parent Leave","Study Leave","10-Day VAWC Leave","Rehabilitation Privilege","Special Leave Benefits for Women","Special Emergency (Calamity) Leave","Adoption Leave"];
+const SHORT={"FORM 6 / LEAVE OF ABSENCE":"Form 6","AUTHORITY TO TRAVEL / LOCATOR SLIP":"Locator Slip"};
+const MON=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const ACR=new Set("AIP APP SIP ALS WAP ERF EFS BEIS EBEIS BERF CTC DTR ITR ELLNA GAD GSIS IPCRF OPCRF NTP LAC LFIFA LRN LIS MOA MOOE NEAP NOSI NOSA NSBI POW PSDS SHS SPED SDS ASDS SGOD CID HR".split(" "));
+const tcase=t=>t.replace(/[A-Za-z]+/g,w=>ACR.has(w.toUpperCase())?w.toUpperCase():w==="DEPED"?"DepEd":w[0].toUpperCase()+w.slice(1).toLowerCase());
+// October 23, 2026 · December 2-3, 2026 · November 30 - December 2, 2026 · December 30, 2026 - January 2, 2027
+function dRange(f,t){
+ if(!f)return "";const a=new Date(f+"T00:00"),b=new Date((t||f)+"T00:00"),M=d=>MON[d.getMonth()],D=d=>d.getDate(),Y=d=>d.getFullYear();
+ if(+b<=+a)return `${M(a)} ${D(a)}, ${Y(a)}`;
+ if(Y(a)!==Y(b))return `${M(a)} ${D(a)}, ${Y(a)} - ${M(b)} ${D(b)}, ${Y(b)}`;
+ if(M(a)===M(b))return `${M(a)} ${D(a)}-${D(b)}, ${Y(a)}`;
+ return `${M(a)} ${D(a)} - ${M(b)} ${D(b)}, ${Y(a)}`;
+}
+// Form 6- Wellness Leave - December 2-3, 2026 of Mrs Zorayda M. Decena - Anos ES
+function buildTitle(v){
+ const who=`${v.hon?v.hon+" ":""}${v.name||"…"}`;
+ const dr=LEAVE.has(v.type)?dRange(v.from,v.to):"";
+ if(v.type===F6)return `Form 6- ${v.leave}${dr?" - "+dr:""} of ${who} - ${v.school}`;
+ const label=v.desc||SHORT[v.type]||tcase(v.type);
+ return `${label}${dr?" - "+dr:""} of ${who} - ${v.school}`;
+}
+const iso=d=>{if(!d)return "";const x=new Date(d);return isNaN(x)?"":`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`};
+let manualTitle=false;
+function recForm(i){
+ const r=i!=null?REC[i]:null,t=r?r[6]:F6;manualTitle=!!r;
+ sheet(r?"Edit record":"Add record",`
+ ${role!=="user"?`<div class="f"><label>School</label><select class="input" id="fs" onchange="tUpd()">${SCHOOLS.map(s=>`<option ${(r?r[10]:"Calantas ES")===s?"selected":""}>${s}</option>`)}</select></div>`:`<div class="f"><label>School</label><div class="lockrow"><input class="input" id="fs" value="${school}" disabled>${ic("lock",16)}</div><div class="hint">Assigned to your account.</div></div>`}
+ <div class="two"><div class="f"><label>Date</label><input class="input" type="date" value="2026-11-25"></div><div class="f"><label>DTS number</label><input class="input mono" value="${r?r[5]:""}" placeholder="108874XXXXX-000025"></div></div>
+ <div class="f"><label>Name</label><div style="display:flex;gap:8px"><select class="input" id="fp" style="width:84px;flex:none" aria-label="Mr, Mrs, or Ms" onchange="tUpd()"><option value="">—</option>${HON.map(x=>`<option ${x==="Mrs"?"selected":""}>${x}</option>`).join("")}</select><input class="input" id="fn" value="${r?r[1]:""}" placeholder="e.g. Zorayda M. Decena" oninput="tUpd()"></div></div>
+ <div class="f"><label>Contact number</label><input class="input" value="${r?r[3]:""}"></div>
+ <div class="f"><label>Document type</label><select class="input" id="ft" onchange="ftChange()">${OFFICES.map(o=>`<optgroup label="${o}">${ROUTES.filter(x=>x[1]===o).map(x=>`<option ${x[0]===t?"selected":""}>${x[0]}</option>`).join("")}</optgroup>`).join("")}</select><div class="hint">${ROUTES.length} document types from the district route list, grouped by office.</div></div>
+ <div class="f"><label>Routed to office</label><div class="route" id="fo">${OFFICE[t]}<small>Automatic</small></div></div>
+ <div class="f" id="flv" style="display:${t===F6?"block":"none"}"><label>Leave type</label><select class="input" id="fv" onchange="tUpd()">${LEAVES.map(x=>`<option ${x==="Wellness Leave"?"selected":""}>${x}</option>`).join("")}</select></div>
+ <div class="f" id="fdz" style="display:${t===F6?"none":"block"}"><label>Description <span class="muted" style="font-weight:400">(optional)</span></label><input class="input" id="fd" placeholder="e.g. Salary Differential, MOOE Liquidation" oninput="tUpd()"><div class="hint">Used in the title instead of the document type name.</div></div>
+ <div id="fl" style="display:${LEAVE.has(t)?"block":"none"}"><div class="two"><div class="f"><label>Date from</label><input class="input" type="date" id="dfr" value="${r?iso(r[7]):""}" onchange="tUpd()"></div><div class="f"><label>Date to</label><input class="input" type="date" id="dto" value="${r?iso(r[8]):""}" onchange="tUpd()"></div></div><div class="f"><label>Excluded date</label><input class="input" value="${r?r[9]:""}"></div></div>
+ <div class="f"><label style="display:flex;align-items:center">Title of the document<span class="grow"></span><button type="button" class="btn sm" id="tbtn" onclick="tToggle()" style="font-weight:500">${r?"Use automatic title":"Edit manually"}</button></label>
+ <textarea class="input" id="ftl" rows="2" style="height:auto;padding:8px 11px;resize:vertical" ${r?"":"readonly"}>${r?r[4]:""}</textarea><div class="hint" id="thint">${r?"Edited manually. Click “Use automatic title” to rebuild it.":"Filled in automatically from the document type, leave type, dates, name, and school."}</div></div>`,
+ `<span class="muted" style="font-size:12.5px">Encoded by <span class="mono">${r?r[2]:(role==="user"?"108874":"macalelon-admin")}</span> (automatic)</span><span class="grow"></span><button class="btn" onclick="closeSheet()">Cancel</button><button class="btn p" onclick="closeSheet();toast('Record saved')">Save record</button>`);
+ tUpd();
+}
+function tUpd(){
+ if(manualTitle)return;
+ $("#ftl").value=buildTitle({type:$("#ft").value,name:$("#fn").value.trim(),pos:$("#fp").value,leave:$("#fv").value,desc:$("#fd").value.trim(),from:$("#dfr").value,to:$("#dto").value,school:$("#fs").value});
+}
+function tToggle(){
+ manualTitle=!manualTitle;const e=$("#ftl");e.readOnly=!manualTitle;
+ $("#tbtn").textContent=manualTitle?"Use automatic title":"Edit manually";
+ $("#thint").textContent=manualTitle?"Edited manually. Click “Use automatic title” to rebuild it.":"Filled in automatically from the document type, leave type, dates, name, and school.";
+ if(manualTitle)e.focus();else tUpd();
+}
+function ftChange(){const t=$("#ft").value;$("#fo").innerHTML=OFFICE[t]+"<small>Automatic</small>";$("#fl").style.display=LEAVE.has(t)?"block":"none";$("#flv").style.display=t===F6?"block":"none";$("#fdz").style.display=t===F6?"none":"block";tUpd()}
+function head(t,s,btn){return `<div class="head"><div><h1>${t}</h1><p class="sub">${s}</p></div><span class="grow"></span>${btn||""}</div>`}
+function tbl(h,b){return `<div class="panel"><div class="tw"><table style="min-width:640px"><thead><tr>${h.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${b}</tbody></table></div></div>`}
+function pUsers(){
+ $("#m").innerHTML=head("Users","Create accounts with a username, a temporary password, and an assigned school.",`<button class="btn p" onclick="userForm()">${ic("plus",15)}Add user</button>`)+
+ tbl(["Name","Username","Role","School","Status",""],USERS.map(u=>`<tr><td><b>${u[0]}</b></td><td class="mono">${u[1]}</td><td><span class="pill r-${u[2]}">${u[2]==="user"?"User":"Admin"}</span></td><td>${u[3]}</td><td><span class="${ST[u[4]][1]}">${ST[u[4]][0]}</span></td><td style="white-space:nowrap">${kebab([["Edit","userForm(1)"],["Reset password","creds('"+u[1]+"',genPw(),'Password reset')"],["-"],[u[4]===0?"Enable account":"Disable account","toast('Account updated')",u[4]===0?0:1]])}</td></tr>`).join(""))+
+ (role==="super"?`<p class="hint" style="margin-top:12px">Superadmins are not shown in this list. They are created in Supabase only.</p>`:"");
+}
+function userForm(e){
+ const pw=genPw();
+ sheet(e?"Edit user":"Add user",`<div class="f"><label>Full name</label><input class="input" value="${e?"School User 1":""}"></div>
+ <div class="f"><label>Username</label><input class="input mono" placeholder="e.g. 108874 (School ID)" value="${e?"108874":""}" ${e?"disabled":""}><div class="hint">${e?"The username can't be changed.":"The user signs in with this. A School ID works well."}</div></div>
+ <div class="two"><div class="f"><label>Role</label><select class="input" onchange="$('#us').style.display=this.value==='user'?'block':'none'"><option value="user">User (school)</option><option value="admin">Admin</option></select></div>
+ <div class="f" id="us"><label>Assigned school</label><select class="input">${SCHOOLS.map(s=>`<option>${s}</option>`)}</select></div></div>
+ ${e?"":`<div class="f"><label>Temporary password</label><div style="display:flex;gap:8px"><input class="input mono" id="tp" value="${pw}"><button class="btn" type="button" onclick="$('#tp').value=genPw()">Generate</button></div><div class="hint">The user must change it at first sign-in.</div></div>`}`,
+ `<button class="btn" onclick="closeSheet()">Cancel</button><button class="btn p" onclick="${e?"closeSheet();toast('User saved')":"creds('108874-new',$('#tp').value,'User created')"}">${e?"Save user":"Create user"}</button>`);
+}
+function schoolForm(){
+ sheet("Add school",`<div class="f"><label>School name</label><input class="input" placeholder="e.g. Pinagbayanan ES"><div class="hint">It will appear in the school dropdown for admins and in Add user.</div></div>`,
+ `<button class="btn" onclick="closeSheet()">Cancel</button><button class="btn p" onclick="closeSheet();toast('School saved')">Save school</button>`);
+}
+function typeForm(){
+ sheet("Add document type",`<div class="f"><label>Document type</label><input class="input" placeholder="e.g. Travel Order"></div>
+ <div class="f"><label>Routed to office</label><input class="input" placeholder="e.g. Accounting"><div class="hint">Filled in automatically when this type is chosen.</div></div>
+ <div class="f"><label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox"> Has Date from, Date to, and Excluded date</label></div>`,
+ `<button class="btn" onclick="closeSheet()">Cancel</button><button class="btn p" onclick="closeSheet();toast('Document type saved')">Save document type</button>`);
+}
+function pSchools(){$("#m").innerHTML=head("Schools","Schools in the district.",`<button class="btn p" onclick="schoolForm()">${ic("plus",15)}Add school</button>`)+tbl(["School","Users","Records"],SCHOOLS.map((s,i)=>`<tr><td><b>${s}</b></td><td>${1+i%2}</td><td>${10+i*7}</td></tr>`).join(""))}
+function pTypes(){const q=tq.toUpperCase(),L=ROUTES.filter(x=>!q||x[0].includes(q)||x[1].includes(q));$("#m").innerHTML=head("Document types",`${ROUTES.length} types from the district route list. Set which office each one goes to.`,`<button class="btn p" onclick="typeForm()">${ic("plus",15)}Add type</button>`)+`<div class="toolbar"><div class="search">${ic("search",16)}<input class="input" id="tqi" placeholder="Search document type or office" aria-label="Search" value="${tq}" oninput="tq=this.value;pTypes();const e=$('#tqi');e.focus();e.setSelectionRange(e.value.length,e.value.length)"></div><span class="muted">${L.length} shown</span></div>`+tbl(["Document type","Routed to office","Asks for dates?",""],L.map(x=>`<tr><td><b>${x[0]}</b></td><td><span class="pill t-hr">${x[1]}</span></td><td>${LEAVE.has(x[0])?"Yes":"No"}</td><td style="text-align:right">${kebab([["Edit","typeForm()"],["-"],["Delete","toast('Still used by records, so it cannot be deleted')",1]])}</td></tr>`).join(""))}
+function pLogs(){
+ $("#m").innerHTML=head("Activity logs","Who did what, and when. Only superadmins can see this.",`<button class="btn" onclick="toast('Exported')">${ic("dl",15)}Export</button>`)+
+ `<div class="toolbar"><div class="search">${ic("search",16)}<input class="input" placeholder="Search user or action" aria-label="Search"></div><select class="input" style="width:auto"><option>All actions</option><option>Added</option><option>Edited</option><option>Deleted</option><option>Sign-in</option><option>Backup</option></select></div>
+ <div class="panel">${LOGS.map(l=>`<div class="log"><span class="mono muted">${l[0]}</span><div><span class="act"><i class="a-${l[2]}"></i>${l[3]}</span><div class="by">${l[1]}${l[4]?" · "+l[4]:""}</div></div></div>`).join("")}</div>`;
+}
+function pBackup(){
+ $("#m").innerHTML=head("Backup & restore","Download a copy of the data, or restore it from an earlier backup.")+
+ `<div class="bk"><div class="box"><h3>Create backup</h3><p class="sub">Records, users, schools, and document types. Passwords are not included.</p><div style="margin-top:14px"><button class="btn p" onclick="toast('Backup created')">${ic("dl",15)}Create backup now</button></div></div>
+ <div class="box"><h3>Restore from file</h3><p class="sub">Use a backup file saved earlier (e.g. from a laptop or flash drive). Records added after it are kept.</p><div class="drop">Drop a backup file here or <u>choose a file</u></div><button class="btn d" onclick="confirmRestore('uploaded-file.json')">Restore…</button></div></div>`+
+ tbl(["Backup","Created","Size",""],BK.map(b=>`<tr><td class="mono">${b[0]}</td><td>${b[1]}</td><td>${b[2]}</td><td style="white-space:nowrap;text-align:right">${kebab([["Download","toast('Downloaded')"],["-"],["Restore","confirmRestore('"+b[0]+"')",1]])}</td></tr>`).join(""));
+}
+function confirmRestore(f){
+ sheet("Restore data?",`<div class="warn">Records in <b class="mono">${f}</b> will be added back, and changed records will go back to how they were in the backup. Records added after the backup are kept. An automatic backup is created first.</div>
+ <div class="f" style="margin-top:16px"><label>Type RESTORE to confirm</label><input class="input" placeholder="RESTORE"></div>`,
+ `<button class="btn" onclick="closeSheet()">Cancel</button><button class="btn p" style="background:var(--maroon);border-color:var(--maroon)" onclick="closeSheet();toast('Data restored')">Restore data</button>`);
+}
+render();
+</script>
+</body>
+</html>
