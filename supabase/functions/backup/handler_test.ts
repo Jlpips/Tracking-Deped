@@ -417,3 +417,30 @@ Deno.test('a valid new profile (auth user without a profile) is inserted with it
   assertEquals(r.json.restored.profiles, 1)
   assertEquals(r.json.skipped, [])
 })
+
+Deno.test('a backup missing an optional record column does not null it (older file, newer schema)', async () => {
+  const b = sampleBackup()
+  const rec = b.records[0] as unknown as Row
+  delete rec.excluded_date
+  rec.title = 'Changed title'
+  const tables = currentTables()
+  tables.records[0] = { ...tables.records[0], excluded_date: 'Nov 21' }
+  const { store, calls } = makeStore({}, { tables })
+  const r = await call(deps(store), { action: 'restore', backup: b, confirm: 'RESTORE' })
+  assertEquals(r.status, 200, JSON.stringify(r.json))
+  const rows = upserts(calls).find((u) => u[1] === 'records')![2]
+  assertEquals(rows.length, 1)
+  assertEquals(rows[0].title, 'Changed title')
+  assert(!('excluded_date' in rows[0]), 'missing column must not be written')
+})
+
+Deno.test('a backup row that matches except for a missing column writes nothing', async () => {
+  const b = sampleBackup()
+  delete (b.records[0] as unknown as Row).excluded_date
+  const tables = currentTables()
+  tables.records[0] = { ...tables.records[0], excluded_date: 'Nov 21' }
+  const { store, calls } = makeStore({}, { tables })
+  const r = await call(deps(store), { action: 'restore', backup: b, confirm: 'RESTORE' })
+  assertEquals(r.status, 200, JSON.stringify(r.json))
+  assert(!upserts(calls).some((u) => u[1] === 'records'))
+})

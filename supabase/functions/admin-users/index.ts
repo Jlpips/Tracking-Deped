@@ -1,7 +1,7 @@
 // admin-users Edge Function: account creation, edits, password resets, and disabling.
 // Runs with the service-role key, so these operations never happen in the browser.
 // Routing and checks live in handler.ts/logic.ts; this file only wires the real Supabase clients.
-import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2.109.0'
 import { getCaller, type CallerProfile } from '../_shared/auth.ts'
 import { generateTempPassword } from './logic.ts'
 import { handler, StoreError, type AdminStore, type ProfileRow } from './handler.ts'
@@ -66,7 +66,7 @@ function makeStore(admin: SupabaseClient): AdminStore {
 const url = env('SUPABASE_URL')
 const noSession = { auth: { persistSession: false, autoRefreshToken: false } }
 const anon = createClient(url, env('SUPABASE_ANON_KEY', 'SUPABASE_PUBLISHABLE_KEY'), noSession)
-const admin = createClient(url, env('SUPABASE_SERVICE_ROLE_KEY'), noSession)
+const admin = createClient(url, env('SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SECRET_KEY'), noSession)
 const store = makeStore(admin)
 
 Deno.serve((req) =>

@@ -84,7 +84,10 @@ type Counts = Record<TableName, number>
 
 const TABLES: TableName[] = ['schools', 'document_types', 'profiles', 'records']
 
-/** Columns written on restore, per table (restore order). Values set by the database are left out. */
+/**
+ * Columns written on restore, per table (restore order). Values set by the database are left out.
+ * Update these lists when a migration adds columns.
+ */
 const RESTORE: Record<TableName, { key: string; label: string; columns: string[] }> = {
   schools: { key: 'id', label: 'name', columns: ['id', 'name'] },
   document_types: { key: 'id', label: 'name', columns: ['id', 'name', 'office', 'requires_leave_dates'] },
@@ -215,9 +218,10 @@ async function createBackup(deps: Deps, caller: Caller, automatic: boolean) {
   return { name, size: new TextEncoder().encode(body).length, tables }
 }
 
+/** Allowed columns present in `row`. A column missing from an older backup is left as it is now, not nulled. */
 function pick(row: Row, columns: string[]): Row {
   const out: Row = {}
-  for (const c of columns) out[c] = row[c] ?? null
+  for (const c of columns) if (c in row) out[c] = row[c] ?? null
   return out
 }
 
@@ -291,8 +295,8 @@ async function restore(deps: Deps, caller: Caller, name?: string, uploaded?: Bac
 
   for (const table of TABLES) {
     const { key, label, columns } = RESTORE[table]
-    const now = new Map<string, string>()
-    for (const row of current[table] as unknown as Row[]) now.set(String(row[key]), JSON.stringify(pick(row, columns)))
+    const now = new Map<string, Row>()
+    for (const row of current[table] as unknown as Row[]) now.set(String(row[key]), row)
 
     const toWrite: Row[] = []
     for (const original of backup[table] as unknown as Row[]) {
@@ -326,7 +330,8 @@ async function restore(deps: Deps, caller: Caller, name?: string, uploaded?: Bac
         }
       }
       // Rows that already match the backup are left alone (no write, no activity-log noise).
-      if (now.get(id) === JSON.stringify(row)) continue
+      const existingRow = now.get(id)
+      if (existingRow && JSON.stringify(pick(existingRow, Object.keys(row))) === JSON.stringify(row)) continue
       toWrite.push(row)
     }
     restored[table] = await upsertAll(deps, table, toWrite, skipped)
