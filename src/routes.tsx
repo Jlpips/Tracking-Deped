@@ -6,8 +6,9 @@ import SchoolsPage from '@/pages/admin/SchoolsPage'
 import UsersPage from '@/pages/admin/UsersPage'
 import ChangePasswordPage from '@/pages/ChangePasswordPage'
 import LoginPage from '@/pages/LoginPage'
-import Placeholder from '@/pages/Placeholder'
 import RecordsPage from '@/pages/RecordsPage'
+import ActivityLogsPage from '@/pages/system/ActivityLogsPage'
+import BackupPage from '@/pages/system/BackupPage'
 
 export function AppRoutes() {
   return (
@@ -36,8 +37,8 @@ export function AppRoutes() {
           <Route path="/admin/document-types" element={<DocumentTypesPage />} />
         </Route>
         <Route element={<RequireRole roles={['superadmin']} />}>
-          <Route path="/system/logs" element={<Placeholder title="Activity logs" />} />
-          <Route path="/system/backup" element={<Placeholder title="Backup & restore" />} />
+          <Route path="/system/logs" element={<ActivityLogsPage />} />
+          <Route path="/system/backup" element={<BackupPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/records" replace />} />
