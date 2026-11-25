@@ -340,7 +340,8 @@ function recForm(i){
  <div class="f"><label>Contact number</label><input class="input" value="${r?r[3]:""}"></div>
  <div class="f"><label>Document type</label><select class="input" id="ft" onchange="ftChange()">${OFFICES.map(o=>`<optgroup label="${o}">${ROUTES.filter(x=>x[1]===o).map(x=>`<option ${x[0]===t?"selected":""}>${x[0]}</option>`).join("")}</optgroup>`).join("")}</select><div class="hint">${ROUTES.length} document types from the district route list, grouped by office.</div></div>
  <div class="f"><label>Routed to office</label><div class="route" id="fo">${OFFICE[t]}<small>Automatic</small></div></div>
- <div class="f" id="flv" style="display:${t===F6?"block":"none"}"><label>Leave type</label><select class="input" id="fv" onchange="tUpd()">${LEAVES.map(x=>`<option ${x==="Wellness Leave"?"selected":""}>${x}</option>`).join("")}</select></div>
+ <div class="f" id="flv" style="display:${t===F6?"block":"none"}"><label>Leave type</label><select class="input" id="fv" onchange="$('#fvoz').style.display=this.value==='Others'?'block':'none';tUpd()">${LEAVES.map(x=>`<option ${x==="Wellness Leave"?"selected":""}>${x}</option>`).join("")}<option>Others</option></select>
+ <div id="fvoz" style="display:none;margin-top:8px"><input class="input" id="fvo" placeholder="Specify leave type, e.g. Terminal Leave" oninput="tUpd()"><div class="hint">Not in the list? Type it here. It will be used in the title.</div></div></div>
  <div class="f" id="fdz" style="display:${t===F6?"none":"block"}"><label>Description <span class="muted" style="font-weight:400">(optional)</span></label><input class="input" id="fd" placeholder="e.g. Salary Differential, MOOE Liquidation" oninput="tUpd()"><div class="hint">Used in the title instead of the document type name.</div></div>
  <div id="fl" style="display:${LEAVE.has(t)?"block":"none"}"><div class="two"><div class="f"><label>Date from</label><input class="input" type="date" id="dfr" value="${r?iso(r[7]):""}" onchange="tUpd()"></div><div class="f"><label>Date to</label><input class="input" type="date" id="dto" value="${r?iso(r[8]):""}" onchange="tUpd()"></div></div><div class="f"><label>Excluded date</label><input class="input" value="${r?r[9]:""}"></div></div>
  <div class="f"><label style="display:flex;align-items:center">Title of the document<span class="grow"></span><button type="button" class="btn sm" id="tbtn" onclick="tToggle()" style="font-weight:500">${r?"Use automatic title":"Edit manually"}</button></label>
@@ -350,7 +351,7 @@ function recForm(i){
 }
 function tUpd(){
  if(manualTitle)return;
- $("#ftl").value=buildTitle({type:$("#ft").value,name:$("#fn").value.trim(),pos:$("#fp").value,leave:$("#fv").value,desc:$("#fd").value.trim(),from:$("#dfr").value,to:$("#dto").value,school:$("#fs").value});
+ $("#ftl").value=buildTitle({type:$("#ft").value,name:$("#fn").value.trim(),pos:$("#fp").value,leave:$("#fv").value==="Others"?($("#fvo").value.trim()||"…"):$("#fv").value,desc:$("#fd").value.trim(),from:$("#dfr").value,to:$("#dto").value,school:$("#fs").value});
 }
 function tToggle(){
  manualTitle=!manualTitle;const e=$("#ftl");e.readOnly=!manualTitle;
