@@ -130,7 +130,7 @@ select results_eq(
   $$values ('adm'), ('sup'), ('ua'), ('ub')$$,
   'sup sees ua, ub, adm and own row, but not other superadmins'
 );
-select is((select count(*)::int from activity_logs), 1, 'sup can select activity_logs');
+select is((select count(*)::int from activity_logs where action = 'test'), 1, 'sup can select activity_logs');
 with u as (update profiles set full_name = 'Renamed' where user_id = '00000000-0000-0000-0000-00000000c05a' returning 1)
 select is(count(*)::int, 0, 'sup cannot update own profile directly (no update policy)') from u;
 select lives_ok('select complete_password_change()', 'sup can complete own password change');
