@@ -1,0 +1,42 @@
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { RequireAuth, RequireRole } from '@/auth/guards'
+import AppShell from '@/components/AppShell'
+import ChangePasswordPage from '@/pages/ChangePasswordPage'
+import LoginPage from '@/pages/LoginPage'
+import Placeholder from '@/pages/Placeholder'
+
+export function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/change-password"
+        element={
+          <RequireAuth>
+            <ChangePasswordPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        element={
+          <RequireAuth>
+            <AppShell />
+          </RequireAuth>
+        }
+      >
+        <Route index element={<Navigate to="/records" replace />} />
+        <Route path="/records" element={<Placeholder title="Records" />} />
+        <Route element={<RequireRole roles={['admin', 'superadmin']} />}>
+          <Route path="/admin/users" element={<Placeholder title="Users" />} />
+          <Route path="/admin/schools" element={<Placeholder title="Schools" />} />
+          <Route path="/admin/document-types" element={<Placeholder title="Document types" />} />
+        </Route>
+        <Route element={<RequireRole roles={['superadmin']} />}>
+          <Route path="/system/logs" element={<Placeholder title="Activity logs" />} />
+          <Route path="/system/backup" element={<Placeholder title="Backup & restore" />} />
+        </Route>
+      </Route>
+      <Route path="*" element={<Navigate to="/records" replace />} />
+    </Routes>
+  )
+}

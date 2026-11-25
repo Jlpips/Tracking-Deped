@@ -1,7 +1,18 @@
+import { ThemeProvider } from 'next-themes'
+import { BrowserRouter } from 'react-router-dom'
+import { AuthProvider } from '@/auth/AuthProvider'
+import { Toaster } from '@/components/ui/sonner'
+import { AppRoutes } from '@/routes'
+
 export default function App() {
   return (
-    <main className="min-h-svh p-6">
-      <h1 className="text-xl font-semibold">DTS Tracker</h1>
-    </main>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </BrowserRouter>
+      <Toaster />
+    </ThemeProvider>
   )
 }
