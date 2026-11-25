@@ -449,6 +449,14 @@
     }
   },
 
+  // The Edge Functions check the caller's sign-in token and role themselves (getCaller +
+  // auth.getUser), so the gateway's legacy JWT check is off. It does not work with the newer
+  // asymmetric JWT signing keys and publishable/secret API keys.
+  "functions": {
+    "admin-users": { "verify_jwt": false },
+    "backup": { "verify_jwt": false }
+  },
+
   "edge_runtime": {
     "enabled": true,
     // Supported request policies: `oneshot`, `per_worker`.

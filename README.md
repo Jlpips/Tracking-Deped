@@ -135,11 +135,25 @@ Notes:
 
 - Superadmins **do not appear in the app's Users list**, and admins cannot edit, reset or
   disable them. Manage them only in the dashboard:
-  - **Reset a superadmin's password:** Authentication → Users → the user → reset or set a new password,
-    then in the SQL Editor:
-    `update public.profiles set must_change_password = true where username = '<username>';`
-  - **Disable a superadmin:** `update public.profiles set disabled = true where username = '<username>';`
-  - **Remove a superadmin:** delete the user under Authentication → Users (the profile is removed with it).
+  - **Reset a superadmin's password:** do not use "Send password recovery"; `@dts.local`
+    addresses do not receive email. In the SQL Editor, set a temporary password and force a change
+    at next sign-in:
+
+    ```sql
+    update auth.users
+    set encrypted_password = extensions.crypt('<temp password>', extensions.gen_salt('bf'))
+    where email = '<username>@dts.local';
+
+    update public.profiles set must_change_password = true where username = '<username>';
+    ```
+
+  - **Someone leaves (disable a superadmin):** in the SQL Editor run
+    `update public.profiles set disabled = true where username = '<username>';`
+    and also **ban** the user under Authentication → Users → the user, for a full lock-out.
+    Do this instead of deleting.
+  - **Deleting a superadmin** under Authentication → Users only works for an account that never
+    created any records (including records added by the workbook import). For everyone else the
+    delete fails, so disable them as above.
 - Keep at least two superadmins if you can, so one person leaving does not lock you out.
 
 ---
@@ -181,21 +195,19 @@ Use placeholders like `<project-ref>` below; the real values come from your dash
    ```
 
    No extra secrets are needed. Supabase gives the functions `SUPABASE_URL`, the publishable/anon
-   key and the service_role key automatically. Both functions check the caller's sign-in token
-   and role themselves.
+   key and the service_role key automatically.
 
-   If the app later shows "Invalid JWT" or a 401 error when creating users or making a backup,
-   redeploy both functions with `--no-verify-jwt` (for example
-   `npx supabase functions deploy admin-users --no-verify-jwt`). This only turns off Supabase's
-   extra gateway check; the functions still reject anyone who is not signed in as an admin or
-   superadmin.
+   `supabase/config.jsonc` turns off Supabase's gateway JWT check (`verify_jwt: false`) for both
+   functions. This is deliberate. That older check does not work with the newer JWT signing keys
+   and publishable/secret keys, and both functions check the signed-in user and their role
+   themselves. They reject anyone who is not signed in as an admin (or, for `backup`, a superadmin).
 
 5. In the dashboard, **Authentication** settings:
    - **Sign In / Providers:** turn **off** "Allow new users to sign up". All accounts are created
      by admins (or, for superadmins, in the dashboard). Keep the Email provider itself enabled,
      because sign-in uses it.
    - Email confirmations are not used. Accounts made by admins in the app are confirmed
-     automatically, so "Confirm email" can stay off.
+     automatically, so it does not matter whether "Confirm email" is on or off.
    - **URL Configuration:** set **Site URL** to your Vercel address (step 5.2), for example
      `https://<your-app>.vercel.app`.
 6. Create the first superadmin ([section 4](#4-create-the-first-superadmin)).
