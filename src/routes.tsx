@@ -4,6 +4,7 @@ import AppShell from '@/components/AppShell'
 import ChangePasswordPage from '@/pages/ChangePasswordPage'
 import LoginPage from '@/pages/LoginPage'
 import Placeholder from '@/pages/Placeholder'
+import RecordsPage from '@/pages/RecordsPage'
 
 export function AppRoutes() {
   return (
@@ -25,7 +26,7 @@ export function AppRoutes() {
         }
       >
         <Route index element={<Navigate to="/records" replace />} />
-        <Route path="/records" element={<Placeholder title="Records" />} />
+        <Route path="/records" element={<RecordsPage />} />
         <Route element={<RequireRole roles={['admin', 'superadmin']} />}>
           <Route path="/admin/users" element={<Placeholder title="Users" />} />
           <Route path="/admin/schools" element={<Placeholder title="Schools" />} />
