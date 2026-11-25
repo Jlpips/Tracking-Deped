@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(33);
+select plan(36);
 
 -- Fixtures (as postgres; auth.role() is null so the superadmin guard allows them)
 insert into auth.users (id, email, aud, role)
@@ -68,6 +68,13 @@ select lives_ok(
     values ('00000000-0000-0000-0000-00000000d00a', 'X', 'X', 'RLS-UA-A', (select id from document_types where name = 'PAYMENTS'))$$,
   'ua can insert a record for school A'
 );
+select throws_ok(
+  $$insert into records (school_id, created_by, name, title, dts_number, document_type_id)
+    values ('00000000-0000-0000-0000-00000000d00a', '00000000-0000-0000-0000-00000000c0ad', 'X', 'X', 'RLS-UA-FORGE',
+            (select id from document_types where name = 'PAYMENTS'))$$,
+  '42501', null,
+  'ua cannot insert a record with created_by = another user'
+);
 with u as (update records set title = 'hacked' where id = '00000000-0000-0000-0000-00000000e00b' returning 1)
 select is(count(*)::int, 0, 'ua updating school B record affects 0 rows') from u;
 with d as (delete from records where id = '00000000-0000-0000-0000-00000000e00b' returning 1)
@@ -103,6 +110,15 @@ select results_eq(
   $$values ('adm'), ('ua'), ('ub')$$,
   'adm sees ua, ub, adm but no superadmin profiles'
 );
+select throws_ok(
+  $$insert into records (school_id, created_by, name, title, dts_number, document_type_id)
+    values ('00000000-0000-0000-0000-00000000d00a', '00000000-0000-0000-0000-00000000c0a1', 'X', 'X', 'RLS-ADM-FORGE',
+            (select id from document_types where name = 'PAYMENTS'))$$,
+  '42501', null,
+  'adm cannot insert a record with created_by = another user'
+);
+with u as (update records set title = 'Admin edited' where id = '00000000-0000-0000-0000-00000000e00b' returning 1)
+select is(count(*)::int, 1, 'adm can update a record created by a school user') from u;
 select is((select count(*)::int from activity_logs), 0, 'adm selects 0 activity_logs');
 select lives_ok($$insert into schools (name) values ('Admin Added School')$$, 'adm can insert schools');
 

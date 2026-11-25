@@ -74,9 +74,16 @@ alter table public.activity_logs enable row level security;
 create policy records_school_select on public.records
   for select to authenticated
   using ((select public.my_role()) = 'user' and school_id = (select public.my_school()));
+-- Inserts pin created_by to the caller so encoder attribution cannot be forged
+-- (records_set_creator resolves the username from created_by). On update the
+-- trigger keeps the original created_by, so update checks need no such clause.
 create policy records_school_insert on public.records
   for insert to authenticated
-  with check ((select public.my_role()) = 'user' and school_id = (select public.my_school()));
+  with check (
+    (select public.my_role()) = 'user'
+    and school_id = (select public.my_school())
+    and created_by = (select auth.uid())
+  );
 create policy records_school_update on public.records
   for update to authenticated
   using ((select public.my_role()) = 'user' and school_id = (select public.my_school()))
@@ -85,10 +92,19 @@ create policy records_school_delete on public.records
   for delete to authenticated
   using ((select public.my_role()) = 'user' and school_id = (select public.my_school()));
 
-create policy records_admin_all on public.records
-  for all to authenticated
+create policy records_admin_select on public.records
+  for select to authenticated
+  using ((select public.is_admin()));
+create policy records_admin_insert on public.records
+  for insert to authenticated
+  with check ((select public.is_admin()) and created_by = (select auth.uid()));
+create policy records_admin_update on public.records
+  for update to authenticated
   using ((select public.is_admin()))
   with check ((select public.is_admin()));
+create policy records_admin_delete on public.records
+  for delete to authenticated
+  using ((select public.is_admin()));
 
 -- ---------------------------------------------------------------------------
 -- schools, document_types: any active user reads; admins write.
