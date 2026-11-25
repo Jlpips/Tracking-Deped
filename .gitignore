@@ -11,3 +11,4 @@ supabase/.branches/
 .worktrees/
 *.log
 *.local
+deno.lock
