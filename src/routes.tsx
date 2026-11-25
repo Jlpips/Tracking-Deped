@@ -1,6 +1,9 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { RequireAuth, RequireRole } from '@/auth/guards'
 import AppShell from '@/components/AppShell'
+import DocumentTypesPage from '@/pages/admin/DocumentTypesPage'
+import SchoolsPage from '@/pages/admin/SchoolsPage'
+import UsersPage from '@/pages/admin/UsersPage'
 import ChangePasswordPage from '@/pages/ChangePasswordPage'
 import LoginPage from '@/pages/LoginPage'
 import Placeholder from '@/pages/Placeholder'
@@ -28,9 +31,9 @@ export function AppRoutes() {
         <Route index element={<Navigate to="/records" replace />} />
         <Route path="/records" element={<RecordsPage />} />
         <Route element={<RequireRole roles={['admin', 'superadmin']} />}>
-          <Route path="/admin/users" element={<Placeholder title="Users" />} />
-          <Route path="/admin/schools" element={<Placeholder title="Schools" />} />
-          <Route path="/admin/document-types" element={<Placeholder title="Document types" />} />
+          <Route path="/admin/users" element={<UsersPage />} />
+          <Route path="/admin/schools" element={<SchoolsPage />} />
+          <Route path="/admin/document-types" element={<DocumentTypesPage />} />
         </Route>
         <Route element={<RequireRole roles={['superadmin']} />}>
           <Route path="/system/logs" element={<Placeholder title="Activity logs" />} />
