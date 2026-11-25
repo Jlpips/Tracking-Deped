@@ -134,6 +134,14 @@ describe('parseSheet', () => {
     expect(result.errors).toEqual([{ row: 2, reason: 'Invalid DATE: "yesterday"', kind: 'invalid' }])
   })
 
+  it('reports a row whose TO date is before its FROM date', () => {
+    const result = parseSheet('S', [HEADER, row({ 'DATE FROM': '1/5/2025', 'DATE TO': '1/2/2025' })])
+    expect(result.records).toEqual([])
+    expect(result.errors).toEqual([
+      { row: 2, reason: 'TO date 2025-01-02 is before FROM date 2025-01-05', kind: 'invalid' },
+    ])
+  })
+
   it('converts numeric cells in text columns to strings', () => {
     const result = parseSheet('S', [HEADER, row({ DTS: 108874, 'CONTACT NUMBER': 9171234567 })])
     expect(result.records[0].dts_number).toBe('108874')

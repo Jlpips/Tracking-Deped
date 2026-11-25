@@ -1,13 +1,16 @@
 // One-time import of the district's old Excel workbook (one tab per school).
 //
-//   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... npx tsx scripts/import-workbook.ts <path.xlsx> [--dry-run]
+//   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... npx tsx scripts/import-workbook.ts <path.xlsx> --created-by <username> [--dry-run]
 //
+// --created-by (required) names the enabled district admin account shown as "Encoded by" on every
+// imported record. The script refuses superadmin and school-user accounts (dry run included).
 // --dry-run parses, matches document types, checks duplicates against the DB and prints the
 // report, but writes nothing (not even schools). Keys come from the environment only.
 
 import { readFileSync } from 'node:fs'
 import { createClient, type SupabaseClient, type SupabaseClientOptions } from '@supabase/supabase-js'
 import * as XLSX from 'xlsx'
+import { checkImportCreator, leaveDateProblem } from './importChecks.ts'
 import { normaliseDts, parseSheet, type ParsedRecord } from './parseSheet.ts'
 
 interface Problem {
@@ -45,15 +48,29 @@ function fail(message: string): never {
   process.exit(1)
 }
 
+const USAGE = 'Usage: npx tsx scripts/import-workbook.ts <path.xlsx> --created-by <admin username> [--dry-run]'
+
 function parseArgs(argv: string[]) {
-  const dryRun = argv.includes('--dry-run')
-  const positional = argv.filter((a) => !a.startsWith('--'))
-  const unknown = argv.filter((a) => a.startsWith('--') && a !== '--dry-run')
-  if (unknown.length) fail(`Unknown option(s): ${unknown.join(', ')}`)
-  if (positional.length !== 1) {
-    fail('Usage: npx tsx scripts/import-workbook.ts <path.xlsx> [--dry-run]')
+  let dryRun = false
+  let createdBy: string | null = null
+  const positional: string[] = []
+  const unknown: string[] = []
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i]
+    if (a === '--dry-run') dryRun = true
+    else if (a === '--created-by') {
+      const value = argv[i + 1]
+      if (!value || value.startsWith('--')) fail(`--created-by needs a username.\n${USAGE}`)
+      createdBy = value
+      i++
+    } else if (a.startsWith('--created-by=')) createdBy = a.slice('--created-by='.length)
+    else if (a.startsWith('--')) unknown.push(a)
+    else positional.push(a)
   }
-  return { path: positional[0], dryRun }
+  if (unknown.length) fail(`Unknown option(s): ${unknown.join(', ')}`)
+  if (positional.length !== 1) fail(USAGE)
+  if (!createdBy || !createdBy.trim()) fail(`--created-by <admin username> is required.\n${USAGE}`)
+  return { path: positional[0], dryRun, createdBy: createdBy.trim().toLowerCase() }
 }
 
 /** Sheet rows as a 2-D array whose index i is sheet row i+1, even if the used range starts lower. */
@@ -86,7 +103,7 @@ async function fetchAll<T>(
 }
 
 async function main() {
-  const { path, dryRun } = parseArgs(process.argv.slice(2))
+  const { path, dryRun, createdBy } = parseArgs(process.argv.slice(2))
 
   const url = process.env.SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -108,16 +125,16 @@ async function main() {
     realtime: { transport: NoWebSocket as unknown as NonNullable<RealtimeTransport> },
   })
 
-  // created_by = the first superadmin; the records trigger sets created_by_username from it.
-  const { data: admins, error: adminError } = await db
+  // created_by = the --created-by admin; the records trigger sets created_by_username from it.
+  const { data: creatorProfile, error: creatorError } = await db
     .from('profiles')
-    .select('user_id, username')
-    .eq('role', 'superadmin')
-    .order('created_at', { ascending: true })
-    .limit(1)
-  if (adminError) fail(`Could not look up the superadmin: ${adminError.message}`)
-  const superadmin = admins?.[0]
-  if (!superadmin) fail('No superadmin profile exists. Create the superadmin account before importing.')
+    .select('user_id, username, role, disabled')
+    .eq('username', createdBy)
+    .maybeSingle()
+  if (creatorError) fail(`Could not look up account "${createdBy}": ${creatorError.message}`)
+  const creatorCheck = checkImportCreator(createdBy, creatorProfile)
+  if (!creatorCheck.ok) fail(creatorCheck.error)
+  const creator = creatorCheck
 
   const docTypes = await fetchAll<{ id: string; name: string; requires_leave_dates: boolean }>(
     'document types',
@@ -193,14 +210,10 @@ async function main() {
         problems.push({ school, row: record.row, dts: record.dts_number, reason: `Unknown document type "${record.document_type}"` })
         continue
       }
-      if (docType.requires_leave_dates && (!record.date_from || !record.date_to)) {
+      const dateProblem = leaveDateProblem(docType, record)
+      if (dateProblem) {
         summary.errors++
-        problems.push({
-          school,
-          row: record.row,
-          dts: record.dts_number,
-          reason: `FROM and TO dates are required for ${docType.name}`,
-        })
+        problems.push({ school, row: record.row, dts: record.dts_number, reason: dateProblem })
         continue
       }
       candidates.push({ school, record, documentTypeId: docType.id })
@@ -228,7 +241,7 @@ async function main() {
       const schoolId = school.id
       const toRow = ({ record, documentTypeId }: Candidate) => ({
         school_id: schoolId,
-        created_by: superadmin.user_id,
+        created_by: creator.user_id,
         date: record.date,
         name: record.name,
         honorific: null,
@@ -274,7 +287,7 @@ async function main() {
   const verb = dryRun ? 'Would import' : 'Imported'
   console.log(`\n${dryRun ? 'DRY RUN - nothing was written.' : 'IMPORT COMPLETE.'}`)
   console.log(`Workbook: ${path}`)
-  console.log(`Records created by superadmin: ${superadmin.username}\n`)
+  console.log(`Records created by (Encoded by): ${creator.username}\n`)
   console.table(
     summaries.map((s) => ({
       School: s.school,

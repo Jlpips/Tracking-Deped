@@ -345,11 +345,11 @@ export interface DtsRecord { id: string; school_id: string; created_by: string; 
 ### Task 11: One-time workbook import
 
 **Files:**
-- Create: `scripts/import-workbook.ts`, `scripts/import-workbook.test.ts`, `scripts/parseSheet.ts`
+- Create: `scripts/import-workbook.ts`, `scripts/import-workbook.test.ts`, `scripts/parseSheet.ts`, `scripts/importChecks.ts`, `scripts/importChecks.test.ts`
 
 **Interfaces:**
 - `parseSheet(sheetName: string, rows: unknown[][]): { school: string; records: ParsedRecord[]; errors: { row: number; reason: string }[] }` — finds the header row by matching column names case-insensitively (`DATE`, `NAME`, `CONTACT`, `TITLE`, `DTS`, `DOCUMENT TYPE`, `FROM`, `TO`, `EXCLUDED`; the workbook's `DEPED EMAIL` column is ignored and not imported), converts Excel serial dates and `M/D/YYYY` text to ISO, skips blank rows, and reports rows missing DTS number or document type.
-- CLI: `npx tsx scripts/import-workbook.ts <path.xlsx> [--dry-run]` with `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` env. One tab = one school (created if missing); unknown document types are **reported, not created**; duplicates by normalised DTS number (in DB or earlier in the file) are skipped and listed; `created_by` = the first superadmin (`created_by_username` shows as that superadmin). Prints a summary per school.
+- CLI: `npx tsx scripts/import-workbook.ts <path.xlsx> --created-by <admin username> [--dry-run]` with `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` env. One tab = one school (created if missing); unknown document types are **reported, not created**; duplicates by normalised DTS number (in DB or earlier in the file) are skipped and listed; `--created-by` is **required**: the script looks up that profile and refuses unless it is an enabled `admin` (a superadmin or school user is refused with a clear message, so the hidden superadmin's username never appears as "Encoded by"; a missing flag is a usage error; the dry run validates it too). `created_by` = that admin (`created_by_username` shows as that admin). The check is the pure helper `checkImportCreator(username, profile)` in `scripts/importChecks.ts`, unit-tested. Prints a summary per school.
 
 - [ ] **Step 1: Failing Vitest tests** with an in-memory sheet: header on row 3 is found; serial `46000` → `2025-12-09`; blank rows skipped; row without DTS reported with its 1-based row number; DTS `' 108874-1 '` and `'108874-1'` in one sheet → second reported as duplicate.
 - [ ] **Step 2:** FAIL → implement → PASS.
