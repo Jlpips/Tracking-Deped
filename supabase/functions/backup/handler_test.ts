@@ -33,8 +33,17 @@ function currentTables(): Tables {
   }
 }
 
-function makeStore(overrides: Partial<BackupStore> = {}, opts: { tables?: Tables; files?: Map<string, string> } = {}) {
+const AUTH_USERS: [string, string | null][] = [
+  ['u1', '108870@dts.local'],
+  [SUPER.userId, 'root@dts.local'],
+]
+
+function makeStore(
+  overrides: Partial<BackupStore> = {},
+  opts: { tables?: Tables; files?: Map<string, string>; authUsers?: [string, string | null][] } = {},
+) {
   const calls: Call[] = []
+  const authUsers = opts.authUsers ?? AUTH_USERS
   const files = opts.files ?? new Map<string, string>()
   const tables = opts.tables ?? currentTables()
   const store: BackupStore = {
@@ -64,9 +73,9 @@ function makeStore(overrides: Partial<BackupStore> = {}, opts: { tables?: Tables
       calls.push(['signedUrl', name, seconds])
       return Promise.resolve(`http://storage/sign/${name}?token=t`)
     },
-    authUserIds: () => {
-      calls.push(['authUserIds'])
-      return Promise.resolve(new Set(['u1', SUPER.userId]))
+    authUsers: () => {
+      calls.push(['authUsers'])
+      return Promise.resolve(new Map<string, string | null>(authUsers))
     },
     upsert: (table, rows) => {
       calls.push(['upsert', table, rows])
@@ -344,4 +353,67 @@ Deno.test('if the safety backup fails, nothing is restored', async () => {
   const r = await call(deps(store), { action: 'restore', backup: sampleBackup(), confirm: 'RESTORE' })
   assertEquals(r.status, 500)
   assert(!names(calls).includes('upsert'))
+})
+
+// --- Usernames are the sign-in identity: restore never renames, and only inserts matching ones.
+
+Deno.test('restore never changes an existing user’s username; other profile columns are still restored', async () => {
+  const b = sampleBackup()
+  b.profiles[0] = { ...b.profiles[0], username: 'hijacked', full_name: 'Old Name' }
+  const { store, calls } = makeStore()
+  const r = await call(deps(store), { action: 'restore', backup: b, confirm: 'RESTORE' })
+  assertEquals(r.status, 200)
+  const p = upserts(calls).find((u) => u[1] === 'profiles')!
+  assertEquals(p[2], [{ user_id: 'u1', username: '108870', full_name: 'Old Name', role: 'user', school_id: 's1' }])
+  assertEquals(r.json.restored.profiles, 1)
+  assertEquals(r.json.skipped, [])
+})
+
+Deno.test('a username-only difference for an existing user writes nothing', async () => {
+  const b = sampleBackup()
+  b.profiles[0] = { ...b.profiles[0], username: 'someone-else' }
+  const { store, calls } = makeStore()
+  const r = await call(deps(store), { action: 'restore', backup: b, confirm: 'RESTORE' })
+  assertEquals(r.status, 200)
+  assert(!upserts(calls).some((u) => u[1] === 'profiles'))
+})
+
+function newProfileBackup(username: string) {
+  const b = sampleBackup()
+  b.profiles.push({ ...b.profiles[0], user_id: 'u2', username, full_name: 'New User' })
+  return b
+}
+
+Deno.test('a new profile whose username does not normalize is skipped', async () => {
+  for (const username of ['Bad Name', '  108871', 'ABC']) {
+    const { store, calls } = makeStore({}, { authUsers: [...AUTH_USERS, ['u2', '108871@dts.local']] })
+    const r = await call(deps(store), { action: 'restore', backup: newProfileBackup(username), confirm: 'RESTORE' })
+    assertEquals(r.status, 200)
+    assert(!upserts(calls).some((u) => u[1] === 'profiles'), username)
+    assertEquals(r.json.skipped.map((s: Row) => [s.table, s.id, s.reason]), [
+      ['profiles', 'u2', 'The username in the backup is not valid.'],
+    ])
+  }
+})
+
+Deno.test('a new profile whose username does not match the auth email is skipped', async () => {
+  for (const email of ['other@dts.local', null]) {
+    const { store, calls } = makeStore({}, { authUsers: [...AUTH_USERS, ['u2', email]] })
+    const r = await call(deps(store), { action: 'restore', backup: newProfileBackup('108871'), confirm: 'RESTORE' })
+    assertEquals(r.status, 200)
+    assert(!upserts(calls).some((u) => u[1] === 'profiles'))
+    assertEquals(r.json.skipped.map((s: Row) => [s.table, s.id, s.reason]), [
+      ['profiles', 'u2', "The username in the backup does not match this account's sign-in."],
+    ])
+  }
+})
+
+Deno.test('a valid new profile (auth user without a profile) is inserted with its username', async () => {
+  const { store, calls } = makeStore({}, { authUsers: [...AUTH_USERS, ['u2', '108871@dts.local']] })
+  const r = await call(deps(store), { action: 'restore', backup: newProfileBackup('108871'), confirm: 'RESTORE' })
+  assertEquals(r.status, 200)
+  const p = upserts(calls).find((u) => u[1] === 'profiles')!
+  assertEquals(p[2], [{ user_id: 'u2', username: '108871', full_name: 'New User', role: 'user', school_id: 's1' }])
+  assertEquals(r.json.restored.profiles, 1)
+  assertEquals(r.json.skipped, [])
 })

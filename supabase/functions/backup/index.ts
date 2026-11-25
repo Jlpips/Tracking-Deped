@@ -101,13 +101,13 @@ function makeStore(admin: SupabaseClient): BackupStore {
       if (error || !data) throw storeError(error, isMissingObject(error) ? 'NotFound' : undefined)
       return data.signedUrl
     },
-    async authUserIds() {
-      const ids = new Set<string>()
+    async authUsers() {
+      const users = new Map<string, string | null>()
       for (let page = 1; ; page++) {
         const { data, error } = await admin.auth.admin.listUsers({ page, perPage: PAGE })
         if (error) throw storeError(error)
-        for (const u of data.users) ids.add(u.id)
-        if (data.users.length < PAGE) return ids
+        for (const u of data.users) users.set(u.id, u.email ?? null)
+        if (data.users.length < PAGE) return users
       }
     },
     async upsert(table, rows) {

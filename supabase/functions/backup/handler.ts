@@ -2,6 +2,7 @@
 // fakes; index.ts wires the real Supabase clients (service role) and Storage bucket `backups`.
 import { HttpError, type Caller } from '../_shared/auth.ts'
 import { json, preflight } from '../_shared/cors.ts'
+import { normalizeUsername, usernameToEmail } from '../_shared/username.ts'
 import {
   BACKUP_VERSION,
   backupFileName,
@@ -59,8 +60,8 @@ export interface BackupStore {
   read(name: string): Promise<string | null>
   /** Signed download URL; rejects with StoreError code 'NotFound' when there is no such backup. */
   signedUrl(name: string, seconds: number): Promise<string>
-  /** Ids of every account in auth.users. */
-  authUserIds(): Promise<Set<string>>
+  /** Every account in auth.users: id → email (null if it has none). */
+  authUsers(): Promise<Map<string, string | null>>
   /** Insert-or-update by primary key; rejects with StoreError on any failure. */
   upsert(table: TableName, rows: Record<string, unknown>[]): Promise<void>
   insertLog(row: LogRow): Promise<void>
@@ -281,7 +282,8 @@ async function restore(deps: Deps, caller: Caller, name?: string, uploaded?: Bac
   const safety = await createBackup(deps, caller, true)
   const current = safety.tables
 
-  const authIds = await deps.store.authUserIds()
+  const authUsers = await deps.store.authUsers()
+  const currentUsernames = new Map(current.profiles.map((p) => [p.user_id, p.username]))
   const superadmins = new Set(current.profiles.filter((p) => p.role === 'superadmin').map((p) => p.user_id))
 
   const restored: Counts = { schools: 0, document_types: 0, profiles: 0, records: 0 }
@@ -302,9 +304,25 @@ async function restore(deps: Deps, caller: Caller, name?: string, uploaded?: Bac
           skip(SUPERADMIN_SKIPPED)
           continue
         }
-        if (!authIds.has(id)) {
+        if (!authUsers.has(id)) {
           skip('This account no longer exists.')
           continue
+        }
+        // The username is the sign-in identity (auth email = usernameToEmail(username)) and never changes,
+        // so an existing user keeps their current username whatever the file says.
+        const existing = currentUsernames.get(id)
+        if (existing !== undefined) {
+          row.username = existing
+        } else {
+          const username = String(row.username)
+          if (normalizeUsername(username) !== username) {
+            skip('The username in the backup is not valid.')
+            continue
+          }
+          if ((authUsers.get(id) ?? '').toLowerCase() !== usernameToEmail(username)) {
+            skip("The username in the backup does not match this account's sign-in.")
+            continue
+          }
         }
       }
       // Rows that already match the backup are left alone (no write, no activity-log noise).
